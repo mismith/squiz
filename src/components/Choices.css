@@ -1,0 +1,44 @@
+.Choices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.Choices > * {
+  display: flex;
+  align-items: center;
+  margin: 8px;
+}
+.Choices > * button {
+  margin: 8px;
+}
+.Choices:not(.showCorrect) > * img {
+  animation: focus 9s forwards;
+}
+@keyframes focus {
+  from {
+    filter: blur(100px);
+  }
+  to {
+    filter: blur(0px);
+  }
+}
+
+.Choices > *:nth-child(1) {
+  flex-direction: column;
+  flex-basis: 100%;
+  margin-bottom: -64px;
+}
+.Choices > *:nth-child(2) {
+  align-items: center;
+
+}
+.Choices > *:nth-child(3) {
+  flex-direction: row-reverse;
+}
+.Choices > *:nth-child(4) {
+  flex-direction: column-reverse;
+  flex-basis: 100%;
+  margin-top: -64px;
+}
