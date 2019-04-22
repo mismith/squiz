@@ -6,7 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import SvgIcon from '@material-ui/core/SvgIcon';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import ShuffleIcon from '@material-ui/icons/Shuffle';
 import shuffleArray from 'shuffle-array';
 
@@ -183,7 +183,7 @@ export default (props) => {
           {!!playlists.length &&
             <Toolbar>
               <Button component={Link} to={'/'}>
-                <ChevronLeftIcon style={{marginRight: 8}} />
+                <ArrowBackIosIcon style={{marginRight: 8}} />
                 Back
               </Button>
               <Button
@@ -196,7 +196,7 @@ export default (props) => {
               </Button>
               <Button component={Link} to={'/'} style={{visibility: 'hidden'}}>
                 {/* to even out whitespace and maintain random button horizontal centering */}
-                <ChevronLeftIcon />
+                <ArrowBackIosIcon />
                 Back
               </Button>
             </Toolbar>
@@ -235,7 +235,7 @@ export default (props) => {
               Start
             </SpotifyButton>
             <Button component={Link} to={`/${props.categoryID}`}>
-              <ChevronLeftIcon style={{marginRight: 8}} />
+              <ArrowBackIosIcon style={{marginRight: 8}} />
               Back
             </Button>
           </Card>
