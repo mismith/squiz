@@ -158,7 +158,7 @@ export default (props) => {
           <Toolbar>
             <Button
               component={Link}
-              to={`./screen/${getRandomID(categories)}`}
+              to={`${props.match.url}/${getRandomID(categories) || ''}`}
               style={{marginLeft: 'auto', marginRight: 'auto'}}
             >
               <ShuffleIcon style={{marginRight: 16}} />
@@ -172,7 +172,7 @@ export default (props) => {
                 title={category.name}
                 image={category.icons[0].url}
                 component={Link}
-                to={`./screen/${category.id}`}
+                to={`${props.match.url}/${category.id}`}
               />
             )}
           </TileGrid>
@@ -182,19 +182,19 @@ export default (props) => {
         <div>
           {!!playlists.length &&
             <Toolbar>
-              <Button component={Link} to={'../screen'}>
+              <Button component={Link} to={'.'}>
                 <ArrowBackIosIcon style={{marginRight: 8}} />
                 Back
               </Button>
               <Button
                 component={Link}
-                to={`./${props.categoryID}/${getRandomID(playlists)}`}
+                to={`${props.match.url}/${getRandomID(playlists) || ''}`}
                 style={{marginLeft: 'auto', marginRight: 'auto'}}
               >
                 <ShuffleIcon style={{marginRight: 16}} />
                 Random
               </Button>
-              <Button component={Link} to={'../screen'} style={{visibility: 'hidden'}}>
+              <Button component={Link} to={'.'} style={{visibility: 'hidden'}}>
                 {/* to even out whitespace and maintain random button horizontal centering */}
                 <ArrowBackIosIcon />
                 Back
@@ -207,7 +207,7 @@ export default (props) => {
                 key={playlist.id}
                 image={playlist.images[0].url}
                 component={Link}
-                to={`./${props.categoryID}/${playlist.id}`}
+                to={`${props.match.url}/${playlist.id}`}
               />
             )}
           </TileGrid>
@@ -234,7 +234,7 @@ export default (props) => {
             <SpotifyButton icon={<PlayArrowIcon />} style={{margin: 16}} onClick={nextTrack}>
               Start
             </SpotifyButton>
-            <Button component={Link} to={`../${props.categoryID}`}>
+            <Button component={Link} to={'.'}>
               <ArrowBackIosIcon style={{marginRight: 8}} />
               Back
             </Button>

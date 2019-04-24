@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Route } from 'react-router-dom';
+import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Lobby from './views/Lobby';
 import Screen from './views/Screen';
@@ -8,20 +8,25 @@ import Controller from './views/Controller';
 export default () => (
   <BrowserRouter>
     <CssBaseline />
-    <Route
-      path="/"
-      exact
-      render={props => <Lobby {...props} />}
-    />
-    <Route
-      path="/games/:gameID/screen/:categoryID?/:playlistID?"
-      exact
-      render={props => <Screen {...props} {...props.match.params} playerID="screen" />}
-    />
-    <Route
-      path="/games/:gameID/players/:playerID"
-      exact
-      render={props => <Controller {...props} {...props.match.params} />}
-    />
+    <Switch>
+      <Route
+        exact
+        strict
+        path="/:url+/"
+        render={props => <Redirect to={props.location.pathname.replace(/\/$/, '')}/>}
+      />
+      <Route
+        path="/games/:gameID/players/:playerID"
+        render={props => <Controller {...props} {...props.match.params} />}
+      />
+      <Route
+        path="/games/:gameID/:categoryID?/:playlistID?"
+        render={props => <Screen {...props} {...props.match.params} playerID="screen" />}
+      />
+      <Route
+        path="/"
+        render={props => <Lobby {...props} />}
+      />
+    </Switch>
   </BrowserRouter>
 );
