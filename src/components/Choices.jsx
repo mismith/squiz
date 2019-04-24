@@ -15,7 +15,7 @@ export default ({ choices, showCorrect, onPick, ...props }) => (
         <Fab
           variant="extended"
           color={showCorrect && choice.$isCorrect ? 'primary' : null}
-          onClick={() => onPick(choice)}
+          onClick={() => onPick && onPick(choice)}
         >
           {choice.name}
         </Fab>

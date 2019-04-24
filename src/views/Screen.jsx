@@ -119,11 +119,11 @@ export default (props) => {
 
     audio = loadAndPlayAudio(newTrack.preview_url);
     timeout = window.setTimeout(() => {
-      pickChoice();
+      endTrack();
     }, TIMEOUT_CHOICES);
   }
 
-  async function pickChoice(choice) {
+  async function endTrack(choice) {
     if (audio) audio.pause();
     if (timeout) window.clearTimeout(timeout);
 
@@ -247,7 +247,6 @@ export default (props) => {
           choices={track.$choices}
           showCorrect={showCorrect}
           style={{flex: 'auto', overflow: 'hidden'}}
-          onPick={pickChoice}
         />
       }
     </div>
