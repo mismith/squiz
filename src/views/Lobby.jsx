@@ -11,8 +11,13 @@ import ShuffleIcon from '@material-ui/icons/Shuffle';
 import shuffleArray from 'shuffle-array';
 
 import SpotifyButton from '../components/SpotifyButton';
+import { retrieveAccessToken } from '../helpers/spotify';
 
 export default (props) => {
+  useEffect(() => {
+    retrieveAccessToken();
+  }, []);
+
   return (
     <div>
       <Button component={Link} to={`/games/1/players/1`}>Join</Button>
