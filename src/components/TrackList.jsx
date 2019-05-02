@@ -43,11 +43,16 @@ const stop = () => {
   }
 };
 const loadAudio = src => new Promise((resolve, reject) => {
-  const player = new Audio(src);
-  player.addEventListener('loadeddata', () => {
-    resolve(player);
+  if (audio) {
+    audio.pause();
+    audio = null;
+  }
+
+  audio = new Audio(src);
+  audio.addEventListener('loadeddata', () => {
+    resolve(audio);
   });
-  player.addEventListener('error', (err) => {
+  audio.addEventListener('error', (err) => {
     reject(err);
   });
 });
@@ -126,14 +131,10 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
   }, [roundID]);
   useEffect(() => {
     if (track && hasInteracted) {
-      stop();
-
       // make sure the audio loads (skip track if not)
       loadAudio(track.src)
-        .then((player) => {
-          stop();
-
-          player.play();
+        .then(() => {
+          audio.play();
 
           // play a clip of the track, then show results
           timeout = window.setTimeout(() => {
