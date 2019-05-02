@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
 import AppBar from '@material-ui/core/AppBar';
@@ -52,7 +52,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
       Back
     </Button>
   );
-  const Body = () => {
+  const body = useMemo(() => {
     if (loading) {
       return (
         <Loader />
@@ -93,7 +93,13 @@ export default ({ gameID, categoryID, playlistID, match }) => {
         <Content />
       </div>
     );
-  };
+  }, [
+    game && game.id,
+    game && game.completed,
+    categoryID,
+    playlistID,
+    loading,
+  ]);
 
   return (
     <div style={styles.container}>
