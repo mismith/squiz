@@ -5,8 +5,6 @@ const styles = {
   button: {
     display: 'inline-flex',
     flexDirection: 'column',
-    width: 200,
-    height: 200,
     margin: 8,
   },
   title: {
@@ -27,9 +25,9 @@ const styles = {
   },
 };
 
-export default ({ title, image, style, children, ...props }) => (
+export default ({ title, image, size = 200, style, children, ...props }) => (
   <ButtonBase
-    style={{ ...styles.button, ...style }}
+    style={{ ...styles.button, ...style, width: size, height: size }}
     {...props}
   >
     {image &&
