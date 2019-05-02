@@ -20,6 +20,7 @@ export default ({ history }) => {
 
   const { register, handleSubmit, errors } = useForm();
   const [playerName, setPlayerName] = useLocalStorage('playerName');
+  const [hostGameID, setHostGameID] = useLocalStorage('hostGameID');
   const [gameIDError, setGameIDError] = useState('');
   const [loading, setLoading] = useState({ join: false, host: false });
 
@@ -56,12 +57,14 @@ export default ({ history }) => {
       return;
     }
 
-    const newGameID = `${Math.round(Math.random() * 8999) + 1000}`; // [1000, 9999]
+    // @TODO: check that this game isn't completed first
+    const newGameID = hostGameID || `${Math.round(Math.random() * 8999) + 1000}`; // [1000, 9999]
     await gamesRef.doc(newGameID).set({
       // @TODO
       timestamp: Date.now(),
     });
     history.push(`/games/${newGameID}`);
+    setHostGameID(newGameID);
     setLoading({ host: false });
   }
 
