@@ -47,7 +47,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
   }, []);
 
   const BackButton = (props) => (
-    <Button component={Link} to={'.'} {...props}>
+    <Button component={Link} to={categoryID ? '.' : '..'} {...props}>
       <ArrowBackIosIcon style={{marginRight: 8}} />
       Back
     </Button>
