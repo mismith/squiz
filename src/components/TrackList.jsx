@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import shuffleArray from 'shuffle-array';
@@ -257,94 +257,99 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
     }
   }
 
-  const Body = () => {
-    if (!track || !hasInteracted || (round && round.completed)) {
-      const Content = () => {
-        if (loading) {
+  const body = useMemo(() => {
+    if (loading) {
+      return (
+        <Loader />
+      );
+    }
+
+    if (track && hasInteracted && isInProgress) {
+      return (
+        <Choices
+          choices={track.choices}
+          correctID={track.completed && track.id}
+          style={{flex: 'auto', overflow: 'hidden'}}
+        />
+      );
+    }
+
+    const Content = () => {
+      const CTA = () => {
+        if (round && round.completed) {
           return (
-            <Loader />
+            <>
+              <TileGrid>
+                {pickedTracks.map(track =>
+                  <TileButton
+                    key={track.id}
+                    image={track.album.images[0].url}
+                    size={64}
+                  />
+                )}
+              </TileGrid>
+              <SpotifyButton
+                icon={<PlayArrowIcon />}
+                style={{margin: 16}}
+                component={Link}
+                to={`/games/${gameID}`}
+              >
+                Next Round
+              </SpotifyButton>
+            </>
           );
         }
-        const CTA = () => {
-          if (round && round.completed) {
-            return (
-              <>
-                <TileGrid>
-                  {pickedTracks.map(track =>
-                    <TileButton
-                      key={track.id}
-                      image={track.album.images[0].url}
-                      size={64}
-                    />
-                  )}
-                </TileGrid>
-                <SpotifyButton
-                  icon={<PlayArrowIcon />}
-                  style={{margin: 16}}
-                  component={Link}
-                  to={`/games/${gameID}`}
-                >
-                  Next Round
-                </SpotifyButton>
-              </>
-            );
-          }
-
-          return (
-            <SpotifyButton
-              icon={<PlayArrowIcon />}
-              style={{margin: 16}}
-              onClick={handleNextClick}
-            >
-              {!pickedTracks.length ? 'Start' : 'Resume'}
-            </SpotifyButton>
-          );
-        };
 
         return (
-          <Card raised style={styles.card}>
-            <Typography color="textSecondary" variant="subtitle1">
-              {category && category.name}
-            </Typography>
-            <Typography color="textPrimary" variant="h4" style={{margin: 16}}>
-              {playlist && playlist.name}
-            </Typography>
-
-            <CTA />
-          </Card>
+          <SpotifyButton
+            icon={<PlayArrowIcon />}
+            style={{margin: 16}}
+            onClick={handleNextClick}
+          >
+            {!pickedTracks.length ? 'Start' : 'Resume'}
+          </SpotifyButton>
         );
       };
 
       return (
-        <div style={styles.container}>
-          <TileGrid style={styles.bg}>
-            {possibleTracks && possibleTracks.map(choice =>
-              <TileButton
-                key={choice.id}
-                image={choice.album.images[0].url}
-                style={{margin: 0}}
-              />
-            )}
-          </TileGrid>
+        <Card raised style={styles.card}>
+          <Typography color="textSecondary" variant="subtitle1">
+            {category && category.name}
+          </Typography>
+          <Typography color="textPrimary" variant="h4" style={{margin: 16}}>
+            {playlist && playlist.name}
+          </Typography>
 
-          <Content />
-        </div>
+          <CTA />
+        </Card>
       );
-    }
+    };
 
     return (
-      <Choices
-        choices={track.choices}
-        correctID={track.completed && track.id}
-        style={{flex: 'auto', overflow: 'hidden'}}
-      />
-    );
-  };
+      <div style={styles.container}>
+        <TileGrid style={styles.bg}>
+          {possibleTracks && possibleTracks.map(choice =>
+            <TileButton
+              key={choice.id}
+              image={choice.album.images[0].url}
+              style={{margin: 0}}
+            />
+          )}
+        </TileGrid>
 
-  console.log('TrackList')
+        <Content />
+      </div>
+    );
+  }, [
+    track && track.completed,
+    hasInteracted,
+    isInProgress,
+    loading,
+  ]);
+
   return (
     <>
-      <Body />
+      {body}
 
       {!loading && isInProgress &&
         <MobileStepper
