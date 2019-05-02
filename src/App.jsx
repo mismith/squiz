@@ -23,6 +23,11 @@ export default () => (
         render={props => <Redirect to={props.location.pathname.replace(/\/$/, '')}/>}
       />
       <Route
+        path="/"
+        exact
+        component={Lobby}
+      />
+      <Route
         path="/games/:gameID/players/:playerID"
         exact
         render={props => <Controller {...props} {...props.match.params} />}

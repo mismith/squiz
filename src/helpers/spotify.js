@@ -1,5 +1,4 @@
 import SpotifyWebApi from 'spotify-web-api-js';
-import weightedRandom from 'weighted-random';
 
 export const spotify = new SpotifyWebApi();
 
@@ -13,69 +12,62 @@ export function fromQueryString(qs) {
   }), {});
 }
 
-export function login() {
+export function login(state) {
   const params = {
     client_id: '8aaf2ce14c0f4937b5fa4fd90958d211',
     response_type: 'token',
     redirect_uri: window.location.origin,
+    state,
   }
   window.location.href = `https://accounts.spotify.com/authorize?${toQueryString(params)}`;
 }
 export function retrieveAccessToken() {
-  const { access_token } = fromQueryString(window.location.hash.substr(1));
-  if (access_token) {
-    window.localStorage.setItem('spotifyAccessToken', access_token);
-    spotify.setAccessToken(access_token);
+  const { access_token, state } = fromQueryString(window.location.hash.substr(1));
+  let accessToken = access_token;
+  if (accessToken) {
+    window.localStorage.setItem('spotifyAccessToken', accessToken);
+    spotify.setAccessToken(accessToken);
     window.location.hash = '';
   } else {
-    spotify.setAccessToken(window.localStorage.getItem('spotifyAccessToken'));
+    accessToken = window.localStorage.getItem('spotifyAccessToken');
+    spotify.setAccessToken(accessToken);
   }
+  return { accessToken, state };
 }
 
 export async function loadCategories() {
   const { categories } = await spotify.getCategories({ limit: 50 });
   return categories.items;
 }
-export async function loadPlaylists(category) {
-  if (category && category.id) {
-    const { playlists } = await spotify.getCategoryPlaylists(category.id, { limit: 50 });
-    return playlists.items;
-  }
-  return [];
+export async function loadPlaylists(categoryID) {
+  const { playlists } = await spotify.getCategoryPlaylists(categoryID, { limit: 50 });
+  return playlists.items;
 }
-export async function loadTracks(playlist) {
-  if (playlist && playlist.id) {
-    const { items } = await spotify.getPlaylistTracks(playlist.id);
-    return items.map(({ track }) => track)
-      .filter(track => track.name.length < 24)
-      .filter(track => track.artists.map(({ name }) => name).join(', ').length < 24)
-      .sort((a, b) => b.popularity - a.popularity);
-  }
-  return [];
+export async function loadCategory(categoryID) {
+  const category = await spotify.getCategory(categoryID);
+  return category;
+}
+export async function loadPlaylist(playlistID) {
+  const playlist = await spotify.getPlaylist(playlistID);
+  return playlist;
+}
+export async function loadTracks(playlistID) {
+  const { items } = await spotify.getPlaylistTracks(playlistID);
+  return items.map(({ track }) => track)
+    .filter(track => track.name.length < 24)
+    .filter(track => track.artists.map(({ name }) => name).join(', ').length < 24)
+    .sort((a, b) => b.popularity - a.popularity);
 }
 export async function loadDecoys(track) {
-  if (track && track.id) {
-    const { tracks } = await spotify.getRecommendations({
-      seed_tracks: track.id,
-      seed_artists: track.artists.map(({ id }) => id),
-    });
-    return tracks
-      .filter(decoy => decoy.name !== track.name)
-      .filter(decoy => decoy.name.length < 24)
-      .filter(decoy => decoy.artists.map(({ name }) => name).join(', ').length < 24)
-      // .filter(decoy => !decoy.artists.find(a => track.artists.find(b => a.name === b.name)))
-      // .filter((decoy, i, decoys) => !decoys.find(a => track.artists.find(b => a.name === b.name)))
-      .sort((a, b) => b.popularity - a.popularity);
-  }
-  return [];
-}
-
-export function pickRandomTrack(tracks = []) {
-  const weights = tracks.map(({ popularity }, index) => {
-    const orderWeight = (tracks.length - index) / tracks.length * 50;
-    return popularity + orderWeight;
+  const { tracks } = await spotify.getRecommendations({
+    seed_tracks: track.id,
+    seed_artists: track.artists.map(({ id }) => id),
   });
-  const trackIndex = weightedRandom(weights);
-  const track = tracks[trackIndex];
-  return track;
+  return tracks
+    .filter(decoy => decoy.name !== track.name)
+    .filter(decoy => decoy.name.length < 24)
+    .filter(decoy => decoy.artists.map(({ name }) => name).join(', ').length < 24)
+    // .filter(decoy => !decoy.artists.find(a => track.artists.find(b => a.name === b.name)))
+    // .filter((decoy, i, decoys) => !decoys.find(a => track.artists.find(b => a.name === b.name)))
+    .sort((a, b) => b.popularity - a.popularity);
 }

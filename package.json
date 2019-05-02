@@ -5,11 +5,16 @@
   "dependencies": {
     "@material-ui/core": "^3.9.3",
     "@material-ui/icons": "^3.0.2",
+    "firebase": "^5.10.0",
     "react": "^16.8.6",
+    "react-count-to": "^0.12.0",
     "react-dom": "^16.8.6",
+    "react-firebase-hooks": "^1.2.0",
+    "react-hook-form": "^3.0.2",
     "react-router-dom": "^5.0.0",
     "react-scripts": "2.1.8",
     "react-swipeable": "^5.2.0-alpha.2",
+    "react-use-localstorage": "^3.0.1-alpha.0",
     "shuffle-array": "^1.0.1",
     "spotify-web-api-js": "^1.2.0",
     "weighted-random": "^0.1.0"
