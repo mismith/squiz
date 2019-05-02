@@ -4,11 +4,7 @@ import Fab from '@material-ui/core/Fab';
 import TileButton from './TileButton';
 import './Choices.css';
 
-const prev = {};
-export default React.memo(({ choices, correctID, onPick = () => {}, ...props }) => {
-  console.log(prev.choices === choices);
-  prev.choices = choices;
-  console.log('Choices', Date.now());
+export default ({ choices, correctID, onPick = () => {}, ...props }) => {
   return (
     <div className={`Choices ${correctID ? 'showCorrect' : ''}`} {...props}>
       {choices.map(choice =>
@@ -28,7 +24,4 @@ export default React.memo(({ choices, correctID, onPick = () => {}, ...props }) 
       )}
     </div>
   );
-}, (prevProps, nextProps) => {
-  console.log(prevProps, nextProps);
-  return false;
-});
+};
