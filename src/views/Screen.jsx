@@ -32,7 +32,7 @@ const styles = {
 
 export default ({ gameID, categoryID, playlistID, match }) => {
   const gameRef = firestore.collection('games').doc(gameID);
-  const { value: game, loading } = useDocumentData(gameRef);
+  const { value: game, loading } = useDocumentData(gameRef, null, 'id');
 
   const childProps = {
     gameID,
@@ -58,7 +58,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
         <Loader />
       );
     }
-    if (!game) {
+    if (!game.timestamp) {
       return (
         <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
           Game not found
@@ -89,17 +89,9 @@ export default ({ gameID, categoryID, playlistID, match }) => {
     };
 
     return (
-      <>
-        <div style={styles.content}>
-          <Content />
-        </div>
-  
-        <AppBar color="default" position="static" style={{padding: '16px 0'}}>
-          <Toolbar>
-            <Players {...childProps} />
-          </Toolbar>
-        </AppBar>
-      </>
+      <div style={styles.content}>
+        <Content />
+      </div>
     );
   };
 
@@ -119,7 +111,13 @@ export default ({ gameID, categoryID, playlistID, match }) => {
         </Toolbar>
       </AppBar>
 
-      <Body />
+      {body}
+  
+      <AppBar color="default" position="static" style={{padding: '16px 0'}}>
+        <Toolbar>
+          <Players {...childProps} />
+        </Toolbar>
+      </AppBar>
     </div>
   );
 };
