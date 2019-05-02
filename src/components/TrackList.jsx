@@ -258,12 +258,6 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
   }
 
   const body = useMemo(() => {
-    if (loading) {
-      return (
-        <Loader />
-      );
-    }
-
     if (track && hasInteracted && isInProgress) {
       return (
         <Choices
@@ -341,17 +335,26 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
       </div>
     );
   }, [
-    track && track.completed,
-    hasInteracted,
-    isInProgress,
-    loading,
+    !loading && category && category.id,
+    !loading && playlist && playlist.id,
+    !loading && round && round.id,
+    !loading && track && track.id,
+    !loading && track && track.completed,
+    !loading && hasInteracted,
+    !loading && isInProgress,
   ]);
+
+  if (loading) {
+    return (
+      <Loader />
+    );
+  }
 
   return (
     <>
       {body}
 
-      {!loading && isInProgress &&
+      {isInProgress &&
         <MobileStepper
           variant="dots"
           position="static"

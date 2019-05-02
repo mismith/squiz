@@ -4,16 +4,27 @@ import CountTo from 'react-count-to';
 import Typography from '@material-ui/core/Typography';
 
 import SpotifyButton from './SpotifyButton';
-import Loader from './Loader';
 import {
   RESULTS_COUNTUP,
   useTrack,
   getTrackPointsForPlayer,
 } from '../helpers/game';
 
+const styles = {
+  player: {
+    display: 'inline-flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    margin: 'auto',
+  },
+};
+
 export default ({ playlistID: roundID, gameRef }) => {
   const playersRef = gameRef.collection('players').orderBy('timestamp');
-  const { value: players = [], loading } = useCollectionData(playersRef, null, 'id');
+  const {
+    value: players = [{ id: null, name: 'Loading' }],
+  } = useCollectionData(playersRef, null, 'id');
+
   const roundRef = roundID && gameRef.collection('rounds').doc(roundID);
   const { value: round } = useDocumentData(roundRef);
   const { track } = useTrack(roundRef);
@@ -38,29 +49,20 @@ export default ({ playlistID: roundID, gameRef }) => {
 
   return (
     <>
-      {loading ? (
-        <Loader />
-      ) : (
-        <>
-          {playersWithResponses.map(player =>
-            <div key={player.id} style={{display: 'inline-flex', flexDirection: 'column', alignItems: 'center', margin: 'auto'}}>
-              <Typography variant="h5" style={{marginBottom: 8}}>
-                <CountTo
-                  from={player.score - player.$change}
-                  to={player.score}
-                  speed={RESULTS_COUNTUP}
-                  delay={32}
-                />
-              </Typography>
-              <SpotifyButton
-                variant={player.$variant}
-                color={player.$color}
-              >
-                {player.name}
-              </SpotifyButton>
-            </div>
-          )}
-        </>
+      {playersWithResponses.map(player =>
+        <div key={player.id} style={{...styles.player, visibility: !player.id && 'hidden' }}>
+          <Typography variant="h5" style={{marginBottom: 8}}>
+            <CountTo
+              from={player.score - player.$change}
+              to={player.score}
+              speed={RESULTS_COUNTUP}
+              delay={32}
+            />
+          </Typography>
+          <SpotifyButton variant={player.$variant} color={player.$color}>
+            {player.name}
+          </SpotifyButton>
+        </div>
       )}
     </>
   );

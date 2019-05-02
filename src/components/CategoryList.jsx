@@ -4,13 +4,15 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 import ShuffleIcon from '@material-ui/icons/Shuffle';
 
+import Loader from './Loader';
 import TileGrid from './TileGrid';
 import TileButton from './TileButton';
 import { retrieveAccessToken, loadCategories } from '../helpers/spotify';
 import { getRandomID } from '../helpers/game';
 
 export default ({ match }) => {
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState();
+  const loading = !categories;
 
   useEffect(() => {
     retrieveAccessToken();
@@ -18,6 +20,12 @@ export default ({ match }) => {
   useEffect(() => {
     loadCategories().then(setCategories);
   }, []);
+
+  if (loading) {
+    return (
+      <Loader />
+    );
+  }
 
   return (
     <>
