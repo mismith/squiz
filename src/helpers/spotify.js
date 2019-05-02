@@ -35,24 +35,41 @@ export function retrieveAccessToken() {
   return { accessToken, state };
 }
 
+const handleAccessTokenExpired = (err) => {
+  if (err && err.status === 401) {
+    return login(window.location.pathname);
+  }
+  throw err;
+};
+
 export async function loadCategories() {
-  const { categories } = await spotify.getCategories({ limit: 50 });
+  const { categories } = await spotify.getCategories({ limit: 50 })
+    .catch(handleAccessTokenExpired);
+
   return categories.items;
 }
 export async function loadPlaylists(categoryID) {
-  const { playlists } = await spotify.getCategoryPlaylists(categoryID, { limit: 50 });
+  const { playlists } = await spotify.getCategoryPlaylists(categoryID, { limit: 50 })
+    .catch(handleAccessTokenExpired);
+
   return playlists.items;
 }
 export async function loadCategory(categoryID) {
-  const category = await spotify.getCategory(categoryID);
+  const category = await spotify.getCategory(categoryID)
+    .catch(handleAccessTokenExpired);
+
   return category;
 }
 export async function loadPlaylist(playlistID) {
-  const playlist = await spotify.getPlaylist(playlistID);
+  const playlist = await spotify.getPlaylist(playlistID)
+    .catch(handleAccessTokenExpired);
+
   return playlist;
 }
 export async function loadTracks(playlistID) {
-  const { items } = await spotify.getPlaylistTracks(playlistID);
+  const { items } = await spotify.getPlaylistTracks(playlistID)
+    .catch(handleAccessTokenExpired);
+
   return items.map(({ track }) => track)
     .filter(track => track.name.length < 24)
     .filter(track => track.artists.map(({ name }) => name).join(', ').length < 24)
@@ -62,7 +79,9 @@ export async function loadDecoys(track) {
   const { tracks } = await spotify.getRecommendations({
     seed_tracks: track.id,
     seed_artists: track.artists.map(({ id }) => id),
-  });
+  })
+    .catch(handleAccessTokenExpired);
+
   return tracks
     .filter(decoy => decoy.name !== track.name)
     .filter(decoy => decoy.name.length < 24)

@@ -16,6 +16,9 @@ export default ({ history }) => {
     if (state === 'hostGame') {
       hostGame();
     }
+    if (state && state[0] === '/') {
+      history.replace(state);
+    }
   }, []);
 
   const { register, handleSubmit, errors } = useForm();
