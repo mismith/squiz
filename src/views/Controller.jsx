@@ -64,8 +64,8 @@ export default ({ gameID, playerID }) => {
 
   // drill down to the current round's current track (if there is one)
   const roundsRef = firestore.collection('games').doc(gameID).collection('rounds');
-  const roundQuery = roundsRef.orderBy('timestamp', 'desc').limit(1);
-  const { value: { docs: [roundDoc] = [] } = {} } = useCollection(roundQuery);
+  const roundRef = roundsRef.orderBy('timestamp', 'desc').limit(1);
+  const { value: { docs: [roundDoc] = [] } = {} } = useCollection(roundRef);
   const { tracksRef, track } = useTrack(roundDoc && roundDoc.ref);
 
   useEffect(() => {

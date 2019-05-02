@@ -11,10 +11,10 @@ import {
   getTrackPointsForPlayer,
 } from '../helpers/game';
 
-export default ({ playlistID, gameRef }) => {
-  const playersQuery = gameRef.collection('players').orderBy('timestamp');
-  const { value: players = [], loading } = useCollectionData(playersQuery, null, 'id');
-  const roundRef = playlistID && gameRef.collection('rounds').doc(playlistID);
+export default ({ playlistID: roundID, gameRef }) => {
+  const playersRef = gameRef.collection('players').orderBy('timestamp');
+  const { value: players = [], loading } = useCollectionData(playersRef, null, 'id');
+  const roundRef = roundID && gameRef.collection('rounds').doc(roundID);
   const { value: round } = useDocumentData(roundRef);
   const { track } = useTrack(roundRef);
 
@@ -25,6 +25,7 @@ export default ({ playlistID, gameRef }) => {
     const trackCompleted = track && track.completed;
     const roundInProgress = round && !round.completed;
     const points = getTrackPointsForPlayer(track, player.id);
+
     return {
       ...player,
       score: player.score || 0,

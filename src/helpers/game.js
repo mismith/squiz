@@ -27,8 +27,8 @@ export function useTrack(roundRef, possibleTracks = undefined) {
   const tracksRef = roundRef && roundRef.collection('tracks');
   const { value: tracks = [], loading: tracksLoading } = useCollectionData(tracksRef, null, 'id');
 
-  const trackQuery = tracksRef && tracksRef.orderBy('timestamp', 'desc').limit(1);
-  const { value: [track] = [], loading: trackLoading } = useCollectionData(trackQuery, null, 'id');
+  const trackRef = tracksRef && tracksRef.orderBy('timestamp', 'desc').limit(1);
+  const { value: [track] = [], loading: trackLoading } = useCollectionData(trackRef, null, 'id');
 
   const pickedTrackIDs = tracks.map(({ id }) => id);
   const pickedTracks = (possibleTracks || tracks).filter(({ id }) => pickedTrackIDs.includes(id));
@@ -40,7 +40,7 @@ export function useTrack(roundRef, possibleTracks = undefined) {
     tracksRef,
     pickedTracks,
     unpickedTracks,
-    trackQuery,
+    trackRef,
     track,
     loading,
   };

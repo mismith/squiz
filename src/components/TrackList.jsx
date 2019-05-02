@@ -88,15 +88,15 @@ const styles = {
   },
 };
 
-export default ({ gameID, categoryID, playlistID, gameRef }) => {
+export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [category, setCategory] = useState();
   const [playlist, setPlaylist] = useState();
-  const { value: game, loading: gameLoading } = useDocumentData(gameRef);
+  const { value: game, loading: gameLoading } = useDocumentData(gameRef, null, 'id');
   const roundsRef = gameRef.collection('rounds');
   const { value: rounds, loading: roundsLoading } = useCollectionData(roundsRef);
-  const roundRef = roundsRef.doc(playlistID);
-  const { value: round, loading: roundLoading } = useDocumentData(roundRef);
+  const roundRef = roundsRef.doc(roundID);
+  const { value: round, loading: roundLoading } = useDocumentData(roundRef, null, 'id');
   const [possibleTracks, setPossibleTracks] = useState();
   const {
     tracksRef,
@@ -114,15 +114,16 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
     retrieveAccessToken();
   }, []);
   useEffect(() => {
-    loadCategory(categoryID).then(setCategory);
+    if (categoryID) {
+      loadCategory(categoryID).then(setCategory);
+    }
   }, [categoryID]);
   useEffect(() => {
-    loadPlaylist(playlistID).then(setPlaylist);
-
-    if (playlistID) {
-      loadTracks(playlistID).then(setPossibleTracks);
+    if (roundID) {
+      loadPlaylist(roundID).then(setPlaylist);
+      loadTracks(roundID).then(setPossibleTracks);
     }
-  }, [playlistID]);
+  }, [roundID]);
   useEffect(() => {
     if (track && hasInteracted) {
       stop();
@@ -228,7 +229,7 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
       completed: Date.now(),
     }, { merge: true });
   }
-  async function handleNext() {
+  async function handleNextClick() {
     // handle edge cases around playing and resuming current track
     if (!hasInteracted) {
       if (track) {
@@ -293,7 +294,7 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
             <SpotifyButton
               icon={<PlayArrowIcon />}
               style={{margin: 16}}
-              onClick={handleNext}
+              onClick={handleNextClick}
             >
               {!pickedTracks.length ? 'Start' : 'Resume'}
             </SpotifyButton>
