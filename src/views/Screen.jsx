@@ -100,11 +100,10 @@ export default ({ gameID, categoryID, playlistID, match }) => {
       </div>
     );
   }, [
-    game && game.id,
-    game && game.completed,
-    categoryID,
-    playlistID,
-    loading,
+    !loading && game && game.id,
+    !loading && game && game.completed,
+    !loading && categoryID,
+    !loading && playlistID,
   ]);
 
   return (

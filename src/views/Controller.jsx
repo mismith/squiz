@@ -57,14 +57,14 @@ export default ({ gameID, playerID }) => {
     { dir: 'Right', icon: KeyboardArrowRight },
     { dir: 'Down', icon: KeyboardArrowDown },
   ];
-  const gameRef = firestore.collection('games').doc(gameID);
-  const { value: game } = useDocumentData(gameRef);
-  const playerRef = gameRef.collection('players').doc(playerID);
 
-  // drill down to the current round's current track (if there is one)
+  const gameRef = firestore.collection('games').doc(gameID);
+  const { value: game } = useDocumentData(gameRef, null, 'id');
   const roundsRef = gameRef.collection('rounds');
   const { value: { ref: roundRef } = {} } = useLatestDocument(roundsRef);
   const { tracksRef, track } = useTrack(roundRef);
+
+  const playerRef = gameRef.collection('players').doc(playerID);
 
   useEffect(() => {
     retrieveAccessToken();
