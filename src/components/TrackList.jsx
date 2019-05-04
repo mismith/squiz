@@ -12,6 +12,7 @@ import TileButton from './TileButton';
 import SpotifyButton from './SpotifyButton';
 import Choices from './Choices';
 import Loader from './Loader';
+import { usePromised } from '../helpers/util';
 import { FieldValue } from '../helpers/firebase';
 import {
   retrieveAccessToken,
@@ -96,14 +97,16 @@ const styles = {
 
 export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [category, setCategory] = useState();
-  const [playlist, setPlaylist] = useState();
+
+  const [category, categoryLoading] = usePromised(() => loadCategory(categoryID), [categoryID]);
+  const [playlist, playlistLoading] = usePromised(() => loadPlaylist(roundID), [roundID]);
+  const [possibleTracks, possibleTracksLoading] = usePromised(() => loadTracks(roundID), [roundID]);
+
   const { value: game, loading: gameLoading } = useDocumentData(gameRef, null, 'id');
   const roundsRef = gameRef.collection('rounds');
   const { value: rounds, loading: roundsLoading } = useCollectionData(roundsRef);
   const roundRef = roundsRef.doc(roundID);
   const { value: round, loading: roundLoading } = useDocumentData(roundRef, null, 'id');
-  const [possibleTracks, setPossibleTracks] = useState();
   const {
     tracksRef,
     pickedTracks,
@@ -111,7 +114,7 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
     track,
     loading: trackLoading,
   } = useTrack(roundRef, possibleTracks);
-  const loading = !category || !playlist || !possibleTracks
+  const loading = categoryLoading || playlistLoading || possibleTracksLoading
     || gameLoading || roundsLoading || roundLoading || trackLoading;
   const isInProgress = round && round.timestamp && !round.completed
     && game && game.timestamp && !game.completed;
@@ -119,17 +122,6 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
   useEffect(() => {
     retrieveAccessToken();
   }, []);
-  useEffect(() => {
-    if (categoryID) {
-      loadCategory(categoryID).then(setCategory);
-    }
-  }, [categoryID]);
-  useEffect(() => {
-    if (roundID) {
-      loadPlaylist(roundID).then(setPlaylist);
-      loadTracks(roundID).then(setPossibleTracks);
-    }
-  }, [roundID]);
   useEffect(() => {
     if (hasInteracted && track) {
       // make sure the audio loads (skip track if not)

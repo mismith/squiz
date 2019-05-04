@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
@@ -8,18 +8,15 @@ import Loader from './Loader';
 import TileGrid from './TileGrid';
 import TileButton from './TileButton';
 import { retrieveAccessToken, loadPlaylists } from '../helpers/spotify';
+import { usePromised } from '../helpers/util';
 import { getRandomID } from '../helpers/game';
 
 export default ({ categoryID, match }) => {
-  const [playlists, setPlaylists] = useState();
-  const loading = !playlists;
+  const [playlists, loading] = usePromised(() => loadPlaylists(categoryID), [categoryID], []);
 
   useEffect(() => {
     retrieveAccessToken();
   }, []);
-  useEffect(() => {
-    loadPlaylists(categoryID).then(setPlaylists);
-  }, [categoryID]);
 
   if (loading) {
     return (
