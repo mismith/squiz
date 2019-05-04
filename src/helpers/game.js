@@ -23,7 +23,7 @@ export function pickRandomTrack(tracks = []) {
   return track;
 }
 
-export function useTrack(roundRef, possibleTracks = undefined) {
+export function useTrack(roundRef, possibleTracks = []) {
   const tracksRef = roundRef && roundRef.collection('tracks');
   const { value: tracks = [], loading: tracksLoading } = useCollectionData(tracksRef, null, 'id');
 
@@ -31,8 +31,8 @@ export function useTrack(roundRef, possibleTracks = undefined) {
   const { value: [track] = [], loading: trackLoading } = useCollectionData(trackRef, null, 'id');
 
   const pickedTrackIDs = tracks.map(({ id }) => id);
-  const pickedTracks = (possibleTracks || tracks).filter(({ id }) => pickedTrackIDs.includes(id));
-  const unpickedTracks = (possibleTracks || []).filter(({ id }) => !pickedTrackIDs.includes(id));
+  const pickedTracks = possibleTracks.filter(({ id }) => pickedTrackIDs.includes(id));
+  const unpickedTracks = possibleTracks.filter(({ id }) => !pickedTrackIDs.includes(id));
 
   const loading = tracksLoading || trackLoading;
 
