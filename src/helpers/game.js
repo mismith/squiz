@@ -1,4 +1,4 @@
-import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { useCollection, useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import weightedRandom from 'weighted-random';
 
 export const ROUNDS_LIMIT = 5;
@@ -23,18 +23,29 @@ export function pickRandomTrack(tracks = []) {
   return track;
 }
 
+export function useLatestDocument(ref) {
+  const query = ref && ref.orderBy('timestamp', 'desc').limit(1);
+  const { value: { docs: [value] = [] } = {}, loading, error } = useCollection(query);
+
+  return {
+    value,
+    loading,
+    error,
+  };
+}
+
 export function useTrack(roundRef, possibleTracks = []) {
   const tracksRef = roundRef && roundRef.collection('tracks');
   const { value: tracks = [], loading: tracksLoading } = useCollectionData(tracksRef, null, 'id');
 
-  const trackRef = tracksRef && tracksRef.orderBy('timestamp', 'desc').limit(1);
-  const { value: [track] = [], loading: trackLoading } = useCollectionData(trackRef, null, 'id');
+  const { value: { ref: trackRef } = {}, loading: trackRefLoading } = useLatestDocument(tracksRef);
+  const { value: track, loading: trackLoading } = useDocumentData(trackRef, null, 'id');
 
   const pickedTrackIDs = tracks.map(({ id }) => id);
   const pickedTracks = possibleTracks.filter(({ id }) => pickedTrackIDs.includes(id));
   const unpickedTracks = possibleTracks.filter(({ id }) => !pickedTrackIDs.includes(id));
 
-  const loading = tracksLoading || trackLoading;
+  const loading = tracksLoading || trackRefLoading || trackLoading;
 
   return {
     tracksRef,

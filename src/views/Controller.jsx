@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
 import { useSwipeable } from 'react-swipeable';
-import { useCollection } from 'react-firebase-hooks/firestore';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -13,7 +12,7 @@ import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown';
 import GameCode from '../components/GameCode';
 import { retrieveAccessToken } from '../helpers/spotify';
 import { firestore, FieldValue } from '../helpers/firebase';
-import { useTrack } from '../helpers/game';
+import { useLatestDocument, useTrack } from '../helpers/game';
 
 const styles = {
   controller: {
@@ -64,9 +63,8 @@ export default ({ gameID, playerID }) => {
 
   // drill down to the current round's current track (if there is one)
   const roundsRef = gameRef.collection('rounds');
-  const roundRef = roundsRef.orderBy('timestamp', 'desc').limit(1);
-  const { value: { docs: [roundDoc] = [] } = {} } = useCollection(roundRef);
-  const { tracksRef, track } = useTrack(roundDoc && roundDoc.ref);
+  const { value: { ref: roundRef } = {} } = useLatestDocument(roundsRef);
+  const { tracksRef, track } = useTrack(roundRef);
 
   useEffect(() => {
     retrieveAccessToken();
