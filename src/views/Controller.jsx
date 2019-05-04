@@ -101,7 +101,12 @@ export default ({ gameID, playerID }) => {
   });
   useEffect(() => {
     // prevent zooming on mobile: https://stackoverflow.com/a/39711930/888928
-    document.addEventListener('gesturestart', e => e.preventDefault());
+    const handleGestureStart = e => e.preventDefault();
+    document.addEventListener('gesturestart', handleGestureStart);
+
+    return () => {
+      document.removeEventListener('gesturestart', handleGestureStart);
+    };
   }, []);
 
   // maintain player connectivity status

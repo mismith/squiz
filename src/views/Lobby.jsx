@@ -13,11 +13,12 @@ import { login, retrieveAccessToken } from '../helpers/spotify';
 export default ({ history }) => {
   useEffect(() => {
     const { state } = retrieveAccessToken();
-    if (state === 'hostGame') {
-      hostGame();
-    }
-    if (state && state[0] === '/') {
-      history.replace(state);
+    if (state) {
+      if (state === 'hostGame') {
+        hostGame();
+      } else if (state[0] === '/') {
+        history.replace(state);
+      }
     }
   }, []);
 
@@ -46,15 +47,15 @@ export default ({ history }) => {
       name: playerName,
       timestamp: FieldValue.serverTimestamp(),
     });
-    history.push(`/games/${joinGameID}/players/${newPlayerID}`);
     setLoading({ join: false });
+    history.push(`/games/${joinGameID}/players/${newPlayerID}`);
   }
-  async function hostGame(forceLogin = false) {
+  async function hostGame() {
     if (loading.host) return;
     setLoading({ host: true });
 
     const { accessToken } = retrieveAccessToken();
-    if (!accessToken || forceLogin) {
+    if (!accessToken) {
       setLoading({ host: false });
       login('hostGame');
       return;
@@ -66,9 +67,9 @@ export default ({ history }) => {
       // @TODO
       timestamp: FieldValue.serverTimestamp(),
     });
-    history.push(`/games/${newGameID}`);
     setHostGameID(newGameID);
     setLoading({ host: false });
+    history.push(`/games/${newGameID}`);
   }
 
   return (
