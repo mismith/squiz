@@ -6,6 +6,7 @@
     "@material-ui/core": "^3.9.3",
     "@material-ui/icons": "^3.0.2",
     "firebase": "^5.10.0",
+    "nosleep.js": "^0.9.0",
     "react": "^16.8.6",
     "react-count-to": "^0.12.0",
     "react-dom": "^16.8.6",
