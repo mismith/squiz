@@ -131,7 +131,7 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
     }
   }, [roundID]);
   useEffect(() => {
-    if (track && hasInteracted) {
+    if (hasInteracted && track) {
       // make sure the audio loads (skip track if not)
       loadAudio(track.src)
         .then(() => {
@@ -153,7 +153,24 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
         });
     }
     return () => stop();
-  }, [track && track.id, hasInteracted]);
+  }, [hasInteracted, track && track.id]);
+
+  // store screen refresh/reload in state
+  useEffect(() => {
+    if (!hasInteracted && game && !game.paused) {
+      // pause round until user interacts with screen
+      gameRef.set({
+        paused: FieldValue.serverTimestamp(),
+      }, { merge: true });
+  
+      // reset/delete player responses
+      if (track && !track.completed) {
+        tracksRef.doc(track.id).set({
+          players: FieldValue.delete(),
+        }, { merge: true });
+      }
+    }
+  }, [hasInteracted, game && game.id, track && track.id]);
 
   async function nextTrack() {
     stop();
@@ -248,6 +265,11 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
 
       // ensure audio won't get blocked because of not being user-interction-driven
       setHasInteracted(true);
+
+      // unpause
+      gameRef.set({
+        paused: FieldValue.delete(),
+      }, { merge: true });
 
       if (!pickedTracks.length) {
         // it was a fresh page (re)load with no tracks played yet, so start

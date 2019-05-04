@@ -22,15 +22,19 @@ const styles = {
 };
 
 export default ({ playlistID: roundID, gameRef }) => {
+  const { value: game, loading: gameLoading } = useDocumentData(gameRef);
   const playersRef = gameRef.collection('players').orderBy('timestamp');
   const {
     value: players = [{ id: null, name: 'Loading' }],
+    loading: playersLoading,
   } = useCollectionData(playersRef, null, 'id');
 
   const roundRef = roundID && gameRef.collection('rounds').doc(roundID);
-  const { value: round } = useDocumentData(roundRef);
-  const { track } = useTrack(roundRef);
+  const { value: round, loading: roundLoading } = useDocumentData(roundRef);
+  const { track, loading: trackLoading } = useTrack(roundRef);
 
+  const loading = gameLoading || playersLoading || roundLoading || trackLoading;
+  const gameActive = !loading && game && !game.paused;
   const trackCompleted = track && track.completed;
   const roundInProgress = round && !round.completed;
 
@@ -43,15 +47,15 @@ export default ({ playlistID: roundID, gameRef }) => {
     return {
       ...player,
       score: player.score || 0,
-      $variant: roundInProgress && response ? 'contained' : 'outlined',
-      $color: trackCompleted && roundInProgress ? showCorrectColor : 'default',
-      $change: (trackCompleted && roundInProgress && isCorrect && points) || 0,
+      $variant: gameActive && roundInProgress && response ? 'contained' : 'outlined',
+      $color: gameActive && trackCompleted && roundInProgress ? showCorrectColor : 'default',
+      $change: (gameActive && trackCompleted && roundInProgress && isCorrect && points) || 0,
       $isCorrect: isCorrect,
     };
   });
 
   const PlayerChange = ({ player, ...props }) => (
-    <Zoom in={!!player.$change} {...props}>
+    <Zoom in={gameActive && !!player.$change} {...props}>
       <Typography variant="h6" color="primary">
         <span style={{margin: 4}}>+</span>{player.$change}
       </Typography>
