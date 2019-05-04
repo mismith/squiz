@@ -1,7 +1,9 @@
 import React from 'react';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import CountTo from 'react-count-to';
+import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import Zoom from '@material-ui/core/Zoom';
 
 import SpotifyButton from './SpotifyButton';
 import {
@@ -47,18 +49,30 @@ export default ({ playlistID: roundID, gameRef }) => {
     };
   });
 
+  const PlayerChange = ({ player, ...props }) => (
+    <Zoom in={!!player.$change} {...props}>
+      <Typography variant="h6" color="primary">
+        <span style={{margin: 4}}>+</span>{player.$change}
+      </Typography>
+    </Zoom>
+  );
+
   return (
     <>
       {playersWithResponses.map(player =>
         <div key={player.id} style={{...styles.player, visibility: !player.id && 'hidden' }}>
-          <Typography variant="h5" style={{marginBottom: 8}}>
-            <CountTo
-              from={player.score - player.$change}
-              to={player.score}
-              speed={RESULTS_COUNTUP}
-              delay={32}
-            />
-          </Typography>
+          <Grid container justify="center" alignItems="center" style={{marginBottom: 8}}>
+            <PlayerChange player={player} style={{visibility: 'hidden'}} />
+            <Typography variant="h5">
+              <CountTo
+                from={player.score - player.$change}
+                to={player.score}
+                speed={RESULTS_COUNTUP}
+                delay={32}
+              />
+            </Typography>
+            <PlayerChange player={player} />
+          </Grid>
           <SpotifyButton variant={player.$variant} color={player.$color}>
             {player.name}
           </SpotifyButton>
