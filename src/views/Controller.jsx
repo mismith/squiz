@@ -58,6 +58,7 @@ export default ({ gameID, playerID }) => {
     { dir: 'Down', icon: KeyboardArrowDown },
   ];
   const gameRef = firestore.collection('games').doc(gameID);
+  const playerRef = gameRef.collection('players').doc(playerID);
 
   // drill down to the current round's current track (if there is one)
   const roundsRef = gameRef.collection('rounds');
@@ -101,6 +102,30 @@ export default ({ gameID, playerID }) => {
   useEffect(() => {
     // prevent zooming on mobile: https://stackoverflow.com/a/39711930/888928
     document.addEventListener('gesturestart', e => e.preventDefault());
+  }, []);
+
+  // maintain player connectivity status
+  useEffect(() => {
+    const setInactive = to => playerRef.set({
+      inactive: to,
+    }, { merge: true });
+
+    // monitor tab changes
+    const handleVisibilityChange = () => {
+      setInactive(document.hidden ? FieldValue.serverTimestamp() : FieldValue.delete());
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // monitor tab closes
+    const handleBeforeUnload = () => {
+      setInactive(FieldValue.serverTimestamp());
+    };
+    document.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   return (

@@ -65,7 +65,10 @@ export default ({ playlistID: roundID, gameRef }) => {
   return (
     <>
       {playersWithResponses.map(player =>
-        <div key={player.id} style={{...styles.player, visibility: !player.id && 'hidden' }}>
+        <div
+          key={player.id}
+          style={{...styles.player, visibility: !player.id && 'hidden', opacity: player.inactive ? 0.5 : 1 }}
+        >
           <Grid container justify="center" alignItems="center" style={{marginBottom: 8}}>
             <PlayerChange player={player} style={{visibility: 'hidden'}} />
             <Typography variant="h5">
