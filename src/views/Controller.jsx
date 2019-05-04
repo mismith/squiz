@@ -10,7 +10,7 @@ import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown';
 
 import { retrieveAccessToken } from '../helpers/spotify';
-import { firestore } from '../helpers/firebase';
+import { firestore, FieldValue} from '../helpers/firebase';
 import { useTrack } from '../helpers/game';
 
 const styles = {
@@ -84,7 +84,7 @@ export default ({ gameID, playerID }) => {
           players: {
             [playerID]: {
               choiceID: choice && choice.id,
-              timestamp: Date.now(),
+              timestamp: FieldValue.serverTimestamp(),
             },
           },
         }, { merge: true });

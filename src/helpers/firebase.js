@@ -11,6 +11,7 @@ export const config = {
 };
 export const app = firebase.initializeApp(config);
 
+export const { FieldValue } = firebase.firestore;
 export const firestore = app.firestore().collection('apps').doc('squiz');
 
 export default firebase;

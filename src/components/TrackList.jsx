@@ -12,6 +12,7 @@ import TileButton from './TileButton';
 import SpotifyButton from './SpotifyButton';
 import Choices from './Choices';
 import Loader from './Loader';
+import { FieldValue } from '../helpers/firebase';
 import {
   retrieveAccessToken,
   loadCategory,
@@ -176,7 +177,7 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
     return Promise.all([
       // start a new round, if one isn't already started
       !roundDoc.exists && roundRef.set({
-        timestamp: Date.now(),
+        timestamp: FieldValue.serverTimestamp(),
       }),
       // add a new track to the round
       tracksRef.doc(newTrack.id).set({
@@ -185,7 +186,7 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
           newTrack,
           ...decoysUsed,
         ].map(trimTrack)),
-        timestamp: Date.now(),
+        timestamp: FieldValue.serverTimestamp(),
       }),
     ]);
   }
@@ -198,7 +199,7 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
     await Promise.all([
       // mark the track as complete
       tracksRef.doc(track.id).set({
-        completed: Date.now(),
+        completed: FieldValue.serverTimestamp(),
       }, { merge: true }),
       // update all player scores
       ...Object.entries(trackData.players || {}).map(async ([playerID, response]) => {
@@ -207,8 +208,8 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
           const points = getTrackPointsForPlayer(trackData, playerID);
           const playerRef = gameRef.collection('players').doc(playerID);
           const { score } = (await playerRef.get()).data();
-        console.log(isCorrect, track.id, response, score, points)
-        return playerRef.set({
+
+          return playerRef.set({
             score: (score || 0) + (points || 0),
           }, { merge: true });
         }
@@ -218,7 +219,7 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
   }
   async function endRound() {
     await roundRef.set({
-      completed: Date.now(),
+      completed: FieldValue.serverTimestamp(),
     }, { merge: true });
 
     if (rounds.length >= ROUNDS_LIMIT) {
@@ -227,7 +228,7 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
   }
   async function endGame() {
     await gameRef.set({
-      completed: Date.now(),
+      completed: FieldValue.serverTimestamp(),
     }, { merge: true });
   }
   async function handleNextClick() {
@@ -240,7 +241,7 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
         } else {
           // ensure start time is up-to-date (e.g. bump it to now if resuming a track)
           tracksRef.doc(track.id).set({
-            timestamp: Date.now(),
+            timestamp: FieldValue.serverTimestamp(),
           }, { merge: true });
         }
       }

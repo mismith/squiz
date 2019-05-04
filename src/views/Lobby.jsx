@@ -7,7 +7,7 @@ import TextField from '@material-ui/core/TextField';
 
 import SpotifyButton from '../components/SpotifyButton';
 import SpotifyLoginButton from '../components/SpotifyLoginButton';
-import { firestore } from '../helpers/firebase';
+import { firestore, FieldValue } from '../helpers/firebase';
 import { login, retrieveAccessToken } from '../helpers/spotify';
 
 export default ({ history }) => {
@@ -44,7 +44,7 @@ export default ({ history }) => {
     const { id: newPlayerID } = await gameRef.collection('players').add({
       // @TODO
       name: playerName,
-      timestamp: Date.now(),
+      timestamp: FieldValue.serverTimestamp(),
     });
     history.push(`/games/${joinGameID}/players/${newPlayerID}`);
     setLoading({ join: false });
@@ -64,7 +64,7 @@ export default ({ history }) => {
     const newGameID = hostGameID || `${Math.round(Math.random() * 8999) + 1000}`; // [1000, 9999]
     await gamesRef.doc(newGameID).set({
       // @TODO
-      timestamp: Date.now(),
+      timestamp: FieldValue.serverTimestamp(),
     });
     history.push(`/games/${newGameID}`);
     setHostGameID(newGameID);
