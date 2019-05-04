@@ -7,6 +7,7 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 
+import GameCode from '../components/GameCode';
 import CategoryList from '../components/CategoryList';
 import PlaylistList from '../components/PlaylistList';
 import TrackList from '../components/TrackList';
@@ -107,10 +108,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
         <Toolbar style={{justifyContent: 'center'}}>
           <BackButton />
 
-          <div style={{textAlign: 'center', margin: 'auto'}}>
-            <Typography variant="h4">{gameID}</Typography>
-            <Typography color="textSecondary" style={{fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 'bold'}}>Game Code</Typography>
-          </div>
+          <GameCode gameID={gameID} />
 
           {/* to even out whitespace and maintain random button horizontal centering */}
           <BackButton style={{visibility: 'hidden'}} />

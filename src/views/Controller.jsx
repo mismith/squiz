@@ -9,6 +9,7 @@ import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown';
 
+import GameCode from '../components/GameCode';
 import { retrieveAccessToken } from '../helpers/spotify';
 import { firestore, FieldValue} from '../helpers/firebase';
 import { useTrack } from '../helpers/game';
@@ -105,9 +106,7 @@ export default ({ gameID, playerID }) => {
     <div style={styles.controller} {...handlers}>
       <AppBar color="default" position="static">
         <Toolbar>
-          <Typography style={{margin: 'auto'}}>
-            Game Code: {gameID}
-          </Typography>
+          <GameCode gameID={gameID} />
         </Toolbar>
       </AppBar>
 
