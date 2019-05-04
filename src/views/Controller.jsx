@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDocumentData } from 'react-firebase-hooks/firestore';
 import { useSwipeable } from 'react-swipeable';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import AppBar from '@material-ui/core/AppBar';
@@ -58,6 +59,7 @@ export default ({ gameID, playerID }) => {
     { dir: 'Down', icon: KeyboardArrowDown },
   ];
   const gameRef = firestore.collection('games').doc(gameID);
+  const { value: game } = useDocumentData(gameRef);
   const playerRef = gameRef.collection('players').doc(playerID);
 
   // drill down to the current round's current track (if there is one)
@@ -79,7 +81,7 @@ export default ({ gameID, playerID }) => {
   const handlers = useSwipeable({
     // send swipes to server for processing
     async onSwiped({ dir }) {
-      if (track && track.id && !track.completed && dir !== swipe) {
+      if (game && !game.paused && track && !track.completed && dir !== swipe) {
         // send selection to server
         const choiceIndex = directions.findIndex(direction => direction.dir === dir);
         const choice = track.choices[choiceIndex];
