@@ -5,6 +5,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
+import CloseIcon from '@material-ui/icons/Close';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 
 import GameCode from '../components/GameCode';
@@ -49,8 +50,12 @@ export default ({ gameID, categoryID, playlistID, match }) => {
 
   const BackButton = (props) => (
     <Button component={Link} to={categoryID ? '.' : '..'} {...props}>
-      <ArrowBackIosIcon style={{marginRight: 8}} />
-      Back
+      {!categoryID ? (
+        <CloseIcon style={{marginRight: 8}} />
+      ) : (
+        <ArrowBackIosIcon style={{marginRight: 8}} />
+      )}
+      {!categoryID ? 'Exit' : 'Back'}
     </Button>
   );
   const body = useMemo(() => {
