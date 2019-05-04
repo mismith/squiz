@@ -79,7 +79,7 @@ export default ({ gameID, playerID }) => {
   const handlers = useSwipeable({
     // send swipes to server for processing
     async onSwiped({ dir }) {
-      if (track && track.id && dir !== swipe) {
+      if (track && track.id && !track.completed && dir !== swipe) {
         // send selection to server
         const choiceIndex = directions.findIndex(direction => direction.dir === dir);
         const choice = track.choices[choiceIndex];
