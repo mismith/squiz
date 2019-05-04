@@ -31,12 +31,13 @@ export default ({ playlistID: roundID, gameRef }) => {
   const { value: round } = useDocumentData(roundRef);
   const { track } = useTrack(roundRef);
 
+  const trackCompleted = track && track.completed;
+  const roundInProgress = round && !round.completed;
+
   const playersWithResponses = players.map((player) => {
     const response = track && track.players && track.players[player.id];
     const isCorrect = response && response.choiceID === track.id;
     const showCorrectColor = isCorrect ? 'primary' : 'secondary';
-    const trackCompleted = track && track.completed;
-    const roundInProgress = round && !round.completed;
     const points = getTrackPointsForPlayer(track, player.id);
 
     return {

@@ -11,7 +11,7 @@ import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown';
 
 import GameCode from '../components/GameCode';
 import { retrieveAccessToken } from '../helpers/spotify';
-import { firestore, FieldValue} from '../helpers/firebase';
+import { firestore, FieldValue } from '../helpers/firebase';
 import { useTrack } from '../helpers/game';
 
 const styles = {
@@ -51,31 +51,32 @@ const styles = {
 };
 
 export default ({ gameID, playerID }) => {
-  useEffect(() => {
-    retrieveAccessToken();
-  }, []);
-
-  const [swipe, setSwipe] = useState(null);
   const directions = [
     { dir: 'Up', icon: KeyboardArrowUp },
     { dir: 'Left', icon: KeyboardArrowLeft },
     { dir: 'Right', icon: KeyboardArrowRight },
     { dir: 'Down', icon: KeyboardArrowDown },
   ];
+  const gameRef = firestore.collection('games').doc(gameID);
 
   // drill down to the current round's current track (if there is one)
-  const roundsRef = firestore.collection('games').doc(gameID).collection('rounds');
+  const roundsRef = gameRef.collection('rounds');
   const roundRef = roundsRef.orderBy('timestamp', 'desc').limit(1);
   const { value: { docs: [roundDoc] = [] } = {} } = useCollection(roundRef);
   const { tracksRef, track } = useTrack(roundDoc && roundDoc.ref);
 
   useEffect(() => {
+    retrieveAccessToken();
+  }, []);
+
+  // handle user swipes
+  const [swipe, setSwipe] = useState(null);
+  useEffect(() => {
     // reset local swipe marker for each new track
     setSwipe(null);
   }, [track && track.id]);
-
-  // send swipes to server for processing
   const handlers = useSwipeable({
+    // send swipes to server for processing
     async onSwiped({ dir }) {
       if (track && track.id) {
         // send selection to server

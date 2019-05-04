@@ -236,7 +236,7 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
     if (!hasInteracted) {
       if (track) {
         if (track.completed) {
-          // round is already over, so preload the next song before resuming
+          // round is already over, so switch to the next song before resuming
           await nextTrack();
         } else {
           // ensure start time is up-to-date (e.g. bump it to now if resuming a track)
