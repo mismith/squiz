@@ -27,13 +27,13 @@ export function retrieveAccessToken() {
   if (accessToken) {
     window.localStorage.setItem('spotifyAccessToken', accessToken);
     spotify.setAccessToken(accessToken);
-    window.location.hash = '';
   } else {
     accessToken = window.localStorage.getItem('spotifyAccessToken');
     spotify.setAccessToken(accessToken);
   }
   return { accessToken, state };
 }
+retrieveAccessToken();
 
 const handleAccessTokenExpired = (err) => {
   if (err && err.status === 401) {

@@ -15,7 +15,6 @@ import Loader from './Loader';
 import { usePromised } from '../helpers/util';
 import { FieldValue } from '../helpers/firebase';
 import {
-  retrieveAccessToken,
   loadCategory,
   loadPlaylist,
   loadTracks,
@@ -119,9 +118,6 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
   const isInProgress = round && round.timestamp && !round.completed
     && game && game.timestamp && !game.completed;
 
-  useEffect(() => {
-    retrieveAccessToken();
-  }, []);
   useEffect(() => {
     if (hasInteracted && track) {
       // make sure the audio loads (skip track if not)

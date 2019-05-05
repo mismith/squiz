@@ -10,7 +10,6 @@ import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown';
 
 import GameCode from '../components/GameCode';
-import { retrieveAccessToken } from '../helpers/spotify';
 import { firestore, FieldValue } from '../helpers/firebase';
 import { useLatestDocument, useTrack } from '../helpers/game';
 
@@ -65,10 +64,6 @@ export default ({ gameID, playerID }) => {
   const { tracksRef, track } = useTrack(roundRef);
 
   const playerRef = gameRef.collection('players').doc(playerID);
-
-  useEffect(() => {
-    retrieveAccessToken();
-  }, []);
 
   // handle user swipes
   const [swipe, setSwipe] = useState(null);

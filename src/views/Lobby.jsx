@@ -14,6 +14,7 @@ export default ({ history }) => {
   useEffect(() => {
     const { state } = retrieveAccessToken();
     if (state) {
+      window.location.hash = '';
       if (state === 'hostGame') {
         hostGame();
       } else if (state[0] === '/') {

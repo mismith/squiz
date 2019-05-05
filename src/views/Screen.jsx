@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
 import AppBar from '@material-ui/core/AppBar';
@@ -14,7 +14,6 @@ import PlaylistList from '../components/PlaylistList';
 import TrackList from '../components/TrackList';
 import Players from '../components/Players';
 import Loader from '../components/Loader';
-import { retrieveAccessToken } from '../helpers/spotify';
 import { firestore } from '../helpers/firebase';
 
 const styles = {
@@ -43,10 +42,6 @@ export default ({ gameID, categoryID, playlistID, match }) => {
     gameRef,
     match,
   };
-
-  useEffect(() => {
-    retrieveAccessToken();
-  }, []);
 
   const BackButton = (props) => (
     <Button component={Link} to={categoryID ? '.' : '..'} {...props}>
