@@ -7,7 +7,7 @@ const styles = {
     flexDirection: 'column',
     margin: 8,
   },
-  title: {
+  label: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -25,7 +25,7 @@ const styles = {
   },
 };
 
-export default ({ title, image, size = 200, style, children, ...props }) => (
+export default ({ label, image, size = 200, style, children, ...props }) => (
   <ButtonBase
     style={{ ...styles.button, ...style, width: size, height: size }}
     {...props}
@@ -33,8 +33,8 @@ export default ({ title, image, size = 200, style, children, ...props }) => (
     {image &&
       <img src={image} alt="" style={styles.img} />
     }
-    {title &&
-      <div style={styles.title}>{title}</div>
+    {label &&
+      <div style={styles.label}>{label}</div>
     }
     {children}
   </ButtonBase>

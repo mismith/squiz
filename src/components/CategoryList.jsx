@@ -24,7 +24,7 @@ export default ({ categories = [], match }) => (
       {categories.map(category =>
         <TileButton
           key={category.id}
-          title={category.name}
+          label={category.name}
           image={category.icons[0].url}
           component={Link}
           to={`${match.url}/${category.id}`}

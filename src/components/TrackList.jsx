@@ -4,6 +4,7 @@ import useLocalStorage from 'react-use-localstorage';
 import shuffleArray from 'shuffle-array';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
+import Tooltip from '@material-ui/core/Tooltip';
 import MobileStepper from '@material-ui/core/MobileStepper';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 
@@ -319,11 +320,15 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
           {isPlaylistLastCompleted &&
             <TileGrid>
               {pickedTracks.map(track =>
-                <TileButton
+                <Tooltip
                   key={track.id}
-                  image={track.album.images[0].url}
-                  size={64}
-                />
+                  title={`${track.name} by ${track.artists.map(({ name }) => name).join(', ')}`}
+                >
+                  <TileButton
+                    image={track.album.images[0].url}
+                    size={64}
+                  />
+                </Tooltip>
               )}
             </TileGrid>
           }
