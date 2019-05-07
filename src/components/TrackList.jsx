@@ -332,14 +332,20 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
               )}
             </TileGrid>
           }
-          
-          <SpotifyButton
-            icon={<PlayArrowIcon />}
-            style={{margin: 16}}
-            onClick={handleNextClick}
-          >
-            {isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`}
-          </SpotifyButton>
+
+          {game && game.completed ? (
+            <SpotifyButton color="secondary" style={{margin: 16}} disabled>
+              Game Over!
+            </SpotifyButton>
+          ) : (
+            <SpotifyButton
+              icon={<PlayArrowIcon />}
+              style={{margin: 16}}
+              onClick={handleNextClick}
+            >
+              {isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`}
+            </SpotifyButton>
+          )}
         </Card>
       </div>
     );

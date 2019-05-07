@@ -70,7 +70,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
         <Loader />
       );
     }
-    if (game && !game.timestamp) {
+    if (game && !game.id) {
       return (
         <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
           Game not found
@@ -78,13 +78,6 @@ export default ({ gameID, categoryID, playlistID, match }) => {
       );
     }
     const Content = () => {
-      if (game && game.completed) {
-        return (
-          <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
-            Game Over!
-          </Typography>
-        );
-      }
       if (playlistID) {
         return (
           <TrackList {...childProps} />
