@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
+import useLocalStorage from 'react-use-localstorage';
 import shuffleArray from 'shuffle-array';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
@@ -99,6 +100,7 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
   const [playlist, playlistLoading] = usePromised(() => loadPlaylist(playlistID), [playlistID]);
   const [tracks, tracksLoading] = usePromised(() => loadTracks(playlistID), [playlistID]);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [usedTrackIDs, setUsedTrackIDs] = useLocalStorage('usedTracks', '');
 
   const { value: game, loading: gameLoading } = useDocumentData(gameRef, null, 'id');
   const roundsRef = gameRef.collection('rounds');
@@ -111,7 +113,7 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
     unpickedTracks,
     track,
     loading: trackLoading,
-  } = useTrack(roundRef, tracks);
+  } = useTrack(roundRef, tracks, usedTrackIDs.split(','));
 
   const loading = categoryLoading || playlistLoading || tracksLoading
     || gameLoading || roundsLoading || roundRefLoading || roundLoading || trackLoading;
@@ -174,6 +176,7 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
       ].map(trimTrack)),
       timestamp: FieldValue.serverTimestamp(),
     };
+    setUsedTrackIDs(`${usedTrackIDs ? `${usedTrackIDs},` : ''}${pickedTrack.id}`);
     await trackRoundRef.collection('tracks').doc(pickedTrack.id).set(newTrack);
   };
   const next = async () => {

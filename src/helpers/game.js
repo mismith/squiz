@@ -34,7 +34,7 @@ export function useLatestDocument(ref) {
   };
 }
 
-export function useTrack(roundRef, possibleTracks = []) {
+export function useTrack(roundRef, possibleTracks = [], usedTrackIDs = []) {
   const tracksRef = roundRef && roundRef.collection('tracks');
   const { value: tracks = [], loading: tracksLoading } = useCollectionData(tracksRef, null, 'id');
 
@@ -43,7 +43,9 @@ export function useTrack(roundRef, possibleTracks = []) {
 
   const pickedTrackIDs = tracks.map(({ id }) => id);
   const pickedTracks = possibleTracks.filter(({ id }) => pickedTrackIDs.includes(id));
-  const unpickedTracks = possibleTracks.filter(({ id }) => !pickedTrackIDs.includes(id));
+  const unpickedTracks = possibleTracks
+    .filter(({ id }) => !pickedTrackIDs.includes(id))
+    .filter(({ id }) => !usedTrackIDs.includes(id));
 
   const loading = tracksLoading || trackRefLoading || trackLoading;
 
