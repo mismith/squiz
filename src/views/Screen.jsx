@@ -14,7 +14,9 @@ import PlaylistList from '../components/PlaylistList';
 import TrackList from '../components/TrackList';
 import Players from '../components/Players';
 import Loader from '../components/Loader';
+import { usePromised } from '../helpers/util';
 import { firestore } from '../helpers/firebase';
+import { loadCategories, loadPlaylists } from '../helpers/spotify';
 
 const styles = {
   container: {
@@ -33,12 +35,21 @@ const styles = {
 
 export default ({ gameID, categoryID, playlistID, match }) => {
   const gameRef = firestore.collection('games').doc(gameID);
-  const { value: game, loading } = useDocumentData(gameRef, null, 'id');
+  const { value: game, gameLoading } = useDocumentData(gameRef, null, 'id');
+
+  // @TODO: why are these firing even when the deps don't change
+  const [categories, categoriesLoading] = usePromised(() => loadCategories(), []);
+  const [playlists, playlistsLoading] = usePromised(() => categoryID && loadPlaylists(categoryID), [categoryID]);
+  const loading = gameLoading
+    || (!categoryID && categoriesLoading)
+    || (categoryID && playlistsLoading);
 
   const childProps = {
     gameID,
     categoryID,
+    categories,
     playlistID,
+    playlists,
     gameRef,
     match,
   };
@@ -59,7 +70,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
         <Loader />
       );
     }
-    if (!game.timestamp) {
+    if (game && !game.timestamp) {
       return (
         <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
           Game not found
@@ -67,7 +78,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
       );
     }
     const Content = () => {
-      if (game.completed) {
+      if (game && game.completed) {
         return (
           <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
             Game Over!

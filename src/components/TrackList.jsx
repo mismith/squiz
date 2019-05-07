@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import shuffleArray from 'shuffle-array';
 import Card from '@material-ui/core/Card';
@@ -29,6 +28,7 @@ import {
   useTrack,
   trimTrack,
   getTrackPointsForPlayer,
+  useLatestDocument,
 } from '../helpers/game';
 
 let audio;
@@ -94,17 +94,16 @@ const styles = {
   },
 };
 
-export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
-  const [hasInteracted, setHasInteracted] = useState(false);
-
+export default ({ gameID, categoryID, playlistID, gameRef }) => {
   const [category, categoryLoading] = usePromised(() => loadCategory(categoryID), [categoryID]);
-  const [playlist, playlistLoading] = usePromised(() => loadPlaylist(roundID), [roundID]);
-  const [possibleTracks, possibleTracksLoading] = usePromised(() => loadTracks(roundID), [roundID]);
+  const [playlist, playlistLoading] = usePromised(() => loadPlaylist(playlistID), [playlistID]);
+  const [tracks, tracksLoading] = usePromised(() => loadTracks(playlistID), [playlistID]);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const { value: game, loading: gameLoading } = useDocumentData(gameRef, null, 'id');
   const roundsRef = gameRef.collection('rounds');
   const { value: rounds, loading: roundsLoading } = useCollectionData(roundsRef);
-  const roundRef = roundsRef.doc(roundID);
+  const { value: { ref: roundRef } = {}, loading: roundRefLoading } = useLatestDocument(roundsRef);
   const { value: round, loading: roundLoading } = useDocumentData(roundRef, null, 'id');
   const {
     tracksRef,
@@ -112,65 +111,55 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
     unpickedTracks,
     track,
     loading: trackLoading,
-  } = useTrack(roundRef, possibleTracks);
-  const loading = categoryLoading || playlistLoading || possibleTracksLoading
-    || gameLoading || roundsLoading || roundLoading || trackLoading;
-  const isInProgress = round && round.timestamp && !round.completed
-    && game && game.timestamp && !game.completed;
+  } = useTrack(roundRef, tracks);
 
-  useEffect(() => {
-    if (hasInteracted && track) {
-      // make sure the audio loads (skip track if not)
-      loadAudio(track.src)
-        .then(() => {
-          audio.play();
+  const loading = categoryLoading || playlistLoading || tracksLoading
+    || gameLoading || roundsLoading || roundRefLoading || roundLoading || trackLoading;
+  const isInProgress = game && game.timestamp && !game.completed
+    && round && round.timestamp && !round.completed;
+  const isPlaylistThisRounds = round && round.playlistID === playlistID;
+  const isPlaylistInProgress = isPlaylistThisRounds && !round.completed;
+  const isPlaylistLastCompleted = isPlaylistThisRounds && round.completed;
+  const isPlaylistAlreadyPlayed = rounds && round && rounds.some(r => r.playlistID === playlistID);
 
-          // play a clip of the track, then show results
-          timeout = window.setTimeout(() => {
-            endTrack();
-    
-            timeout = window.setTimeout(() => {
-              nextTrack();
-            }, RESULTS_TIMEOUT);
-          }, CHOICES_TIMEOUT);
-        })
-        .catch((err) => {
-          console.warn(err); // eslint-disable-line no-console
-
-          nextTrack(); // @TODO: replace the broken track instead of just missing it
-        });
-    }
-    return () => stop();
-  }, [hasInteracted, track && track.id]);
-
-  // store screen refresh/reload in state
+  // store screen refresh/reload in state // @TODO: move this to page beforeunload
   useEffect(() => {
     if (!hasInteracted && game && !game.paused) {
       // pause round until user interacts with screen
       gameRef.set({
         paused: FieldValue.serverTimestamp(),
       }, { merge: true });
-  
-      // reset/delete player responses
-      if (track && !track.completed) {
-        tracksRef.doc(track.id).set({
-          players: FieldValue.delete(),
-        }, { merge: true });
-      }
     }
-  }, [hasInteracted, game && game.id, track && track.id]);
+  }, [hasInteracted, game && game.id]);
 
-  async function nextTrack() {
+  async function endGame() {
     stop();
 
-    if (pickedTracks.length >= TRACKS_LIMIT || !unpickedTracks.length) {
-      return endRound();
-    }
+    await gameRef.set({
+      completed: FieldValue.serverTimestamp(),
+    }, { merge: true });
+  }
+  async function endRound() {
+    stop();
 
-    const newTrack = pickRandomTrack(unpickedTracks);
-    if (!newTrack) throw new Error('no more tracks'); // @TODO
+    await roundRef.set({
+      completed: FieldValue.serverTimestamp(),
+    }, { merge: true });
+  }
+  async function endTrack() {
+    stop();
 
-    const decoys = await loadDecoys(newTrack);
+    // mark the track as complete
+    await tracksRef.doc(track.id).set({
+      completed: FieldValue.serverTimestamp(),
+    }, { merge: true });
+  }
+
+  const nextTrack = async () => {
+    const pickedTrack = pickRandomTrack(unpickedTracks);
+    if (!pickedTrack) throw new Error('no more tracks'); // @TODO
+
+    const decoys = await loadDecoys(pickedTrack);
     const decoysUsed = [];
     while (decoysUsed.length < 3 && decoys.length) {
       const decoy = pickRandomTrack(decoys);
@@ -178,39 +167,105 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
       decoysUsed.push(...decoys.splice(index, 1));
     }
 
-    const roundDoc = await roundRef.get();
-    return Promise.all([
-      // start a new round, if one isn't already started
-      !roundDoc.exists && roundRef.set({
+    // start a new round, if one isn't already started, or if existing one is already completed
+    let trackRoundRef = roundRef;
+    if (!round || (round && round.completed)) {
+      trackRoundRef = await roundsRef.add({
+        playlistID,
         timestamp: FieldValue.serverTimestamp(),
-      }),
-      // add a new track to the round
-      tracksRef.doc(newTrack.id).set({
-        src: newTrack.preview_url,
-        choices: shuffleArray([
-          newTrack,
-          ...decoysUsed,
-        ].map(trimTrack)),
-        timestamp: FieldValue.serverTimestamp(),
-      }),
-    ]);
-  }
-  async function endTrack() {
+      });
+    }
+
+    // append trimmed track to round's list
+    const newTrack = {
+      src: pickedTrack.preview_url || 'missing',
+      choices: shuffleArray([
+        pickedTrack,
+        ...decoysUsed,
+      ].map(trimTrack)),
+      timestamp: FieldValue.serverTimestamp(),
+    };
+    await trackRoundRef.collection('tracks').doc(pickedTrack.id).set(newTrack);
+  };
+  const next = async () => {
     stop();
 
-    if (!track) throw new Error('invalid track'); // @TODO
+    if (pickedTracks && pickedTracks.length >= TRACKS_LIMIT) {
+      if (round && !round.completed) {
+        // @TODO: alert if track run out early
+        await endRound();
 
-    const trackData = (await tracksRef.doc(track.id).get()).data() || {};
-    await Promise.all([
-      // mark the track as complete
-      tracksRef.doc(track.id).set({
-        completed: FieldValue.serverTimestamp(),
-      }, { merge: true }),
+        if (rounds && rounds.length >= ROUNDS_LIMIT) {
+          // @TODO: make this non-instant
+          if (game && !game.completed) {
+            await endGame();
+          }
+        }
+        return;
+      }
+    }
+
+    await nextTrack();
+  };
+  const handleNextClick = async () => {
+    if (game.completed) {
+      return; // @TODO
+    }
+
+    if (game.paused) {
+      // unpause/resume
+      await gameRef.set({
+        paused: FieldValue.delete(),
+      }, { merge: true });
+    }
+
+    // resuming a track (e.g. after page refresh)
+    if (track && !track.completed) {
+      // ensure start time is up-to-date, and clear any existing player responses
+      await tracksRef.doc(track.id).set({
+        players: FieldValue.delete(),
+        timestamp: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    } else {
+      // playing a track as usual
+      await next();
+    }
+
+    // ensure audio doesn't get blocked because of not being user-interction-driven
+    // NB: this goes last since the state change triggers UI updates
+    if (!hasInteracted) {
+      setHasInteracted(true);
+    }
+  };
+
+  usePromised(async () => {
+    // make sure the audio loads (skip track if not)
+    try {
+      if (hasInteracted && track && track.src && !track.completed) {
+        await loadAudio(track.src);
+        audio.play();
+
+        // play a clip of the track (e.g. stop playing it early, before it actually ends)
+        await new Promise((resolve) => {
+          timeout = window.setTimeout(resolve, CHOICES_TIMEOUT);
+        });
+        await endTrack();
+      }
+    } catch (err) {
+      console.warn(err); // eslint-disable-line no-console
+
+      await next();
+      // @TODO: replace the broken track instead of just missing it
+      // e.g. remove broken track -> nextTrack()
+    }
+  }, [hasInteracted, track && track.src]);
+  usePromised(async () => {
+    if (hasInteracted && track && track.completed) {
       // update all player scores
-      ...Object.entries(trackData.players || {}).map(async ([playerID, response]) => {
+      await Promise.all(Object.entries(track.players || {}).map(async ([playerID, response]) => {
         const isCorrect = track.id === response.choiceID;
         if (isCorrect) {
-          const points = getTrackPointsForPlayer(trackData, playerID);
+          const points = getTrackPointsForPlayer(track, playerID);
           const playerRef = gameRef.collection('players').doc(playerID);
           const { score } = (await playerRef.get()).data();
 
@@ -219,55 +274,15 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
           }, { merge: true });
         }
         return null;
-      }),
-    ]);
-  }
-  async function endRound() {
-    await roundRef.set({
-      completed: FieldValue.serverTimestamp(),
-    }, { merge: true });
+      }));
 
-    if (rounds.length >= ROUNDS_LIMIT) {
-      return endGame();
+      // show results
+      await new Promise((resolve) => {
+        timeout = window.setTimeout(resolve, RESULTS_TIMEOUT);
+      });
+      await next();
     }
-  }
-  async function endGame() {
-    await gameRef.set({
-      completed: FieldValue.serverTimestamp(),
-    }, { merge: true });
-  }
-  async function handleNextClick() {
-    // handle edge cases around playing and resuming current track
-    if (!hasInteracted) {
-      if (track) {
-        if (track.completed) {
-          // round is already over, so switch to the next song before resuming
-          await nextTrack();
-        } else {
-          // ensure start time is up-to-date (e.g. bump it to now if resuming a track)
-          tracksRef.doc(track.id).set({
-            timestamp: FieldValue.serverTimestamp(),
-          }, { merge: true });
-        }
-      }
-
-      // ensure audio won't get blocked because of not being user-interction-driven
-      setHasInteracted(true);
-
-      // unpause
-      gameRef.set({
-        paused: FieldValue.delete(),
-      }, { merge: true });
-
-      if (!pickedTracks.length) {
-        // it was a fresh page (re)load with no tracks played yet, so start
-        nextTrack();
-      }
-    } else {
-      // no edge cases: just go to the next track
-      nextTrack();
-    }
-  }
+  }, [hasInteracted, track && track.completed]);
 
   const body = useMemo(() => {
     if (track && hasInteracted && isInProgress) {
@@ -280,61 +295,10 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
       );
     }
 
-    const Content = () => {
-      const CTA = () => {
-        if (round && round.completed) {
-          return (
-            <>
-              <TileGrid>
-                {pickedTracks.map(track =>
-                  <TileButton
-                    key={track.id}
-                    image={track.album.images[0].url}
-                    size={64}
-                  />
-                )}
-              </TileGrid>
-              <SpotifyButton
-                icon={<PlayArrowIcon />}
-                style={{margin: 16}}
-                component={Link}
-                to={`/games/${gameID}`}
-              >
-                Next Round
-              </SpotifyButton>
-            </>
-          );
-        }
-
-        return (
-          <SpotifyButton
-            icon={<PlayArrowIcon />}
-            style={{margin: 16}}
-            onClick={handleNextClick}
-          >
-            {!pickedTracks.length ? 'Start' : 'Resume'}
-          </SpotifyButton>
-        );
-      };
-
-      return (
-        <Card raised style={styles.card}>
-          <Typography color="textSecondary" variant="subtitle1">
-            {category && category.name}
-          </Typography>
-          <Typography color="textPrimary" variant="h4" style={{margin: 16}}>
-            {playlist && playlist.name}
-          </Typography>
-
-          <CTA />
-        </Card>
-      );
-    };
-
     return (
       <div style={styles.container}>
         <TileGrid style={styles.bg}>
-          {possibleTracks && possibleTracks.map(choice =>
+          {tracks && tracks.map(choice =>
             <TileButton
               key={choice.id}
               image={choice.album.images[0].url}
@@ -343,7 +307,34 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
           )}
         </TileGrid>
 
-        <Content />
+        <Card raised style={styles.card}>
+          <Typography color="textSecondary" variant="subtitle1">
+            {category && category.name}
+          </Typography>
+          <Typography color="textPrimary" variant="h4" style={{margin: 16}}>
+            {playlist && playlist.name}
+          </Typography>
+
+          {isPlaylistLastCompleted &&
+            <TileGrid>
+              {pickedTracks.map(track =>
+                <TileButton
+                  key={track.id}
+                  image={track.album.images[0].url}
+                  size={64}
+                />
+              )}
+            </TileGrid>
+          }
+          
+          <SpotifyButton
+            icon={<PlayArrowIcon />}
+            style={{margin: 16}}
+            onClick={handleNextClick}
+          >
+            {isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`}
+          </SpotifyButton>
+        </Card>
       </div>
     );
   }, [
@@ -354,6 +345,8 @@ export default ({ gameID, categoryID, playlistID: roundID, gameRef }) => {
     !loading && track && track.completed,
     !loading && hasInteracted,
     !loading && isInProgress,
+    !loading && pickedTracks,
+    !loading && handleNextClick,
   ]);
 
   if (loading) {

@@ -8,8 +8,9 @@ import Zoom from '@material-ui/core/Zoom';
 import SpotifyButton from './SpotifyButton';
 import {
   RESULTS_COUNTUP,
-  useTrack,
   getTrackPointsForPlayer,
+  useTrack,
+  useLatestDocument,
 } from '../helpers/game';
 
 const styles = {
@@ -21,19 +22,21 @@ const styles = {
   },
 };
 
-export default ({ playlistID: roundID, gameRef }) => {
+export default ({ gameRef }) => {
   const { value: game, loading: gameLoading } = useDocumentData(gameRef);
+  const roundsRef = gameRef.collection('rounds');
+  const { value: { ref: roundRef } = {}, loading: roundRefLoading } = useLatestDocument(roundsRef);
+  const { value: round, loading: roundLoading } = useDocumentData(roundRef, null, 'id');
+  const { track, loading: trackLoading } = useTrack(roundRef);
+
   const playersRef = gameRef.collection('players').orderBy('timestamp');
   const {
     value: players = [{ id: null, name: 'Loading' }],
     loading: playersLoading,
   } = useCollectionData(playersRef, null, 'id');
 
-  const roundRef = roundID && gameRef.collection('rounds').doc(roundID);
-  const { value: round, loading: roundLoading } = useDocumentData(roundRef);
-  const { track, loading: trackLoading } = useTrack(roundRef);
-
-  const loading = gameLoading || playersLoading || roundLoading || trackLoading;
+  const loading = gameLoading || roundRefLoading || roundLoading || trackLoading
+    || playersLoading;
   const gameActive = !loading && game && !game.paused;
   const trackCompleted = track && track.completed;
   const roundInProgress = round && !round.completed;
@@ -42,7 +45,7 @@ export default ({ playlistID: roundID, gameRef }) => {
     const response = track && track.players && track.players[player.id];
     const isCorrect = response && response.choiceID === track.id;
     const showCorrectColor = isCorrect ? 'primary' : 'secondary';
-    const points = getTrackPointsForPlayer(track, player.id);
+    const points = getTrackPointsForPlayer(track, player.id); // @TODO: compute difference from local state instead of recalculating
 
     return {
       ...player,
