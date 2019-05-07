@@ -33,6 +33,8 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     flexBasis: '50%',
+    pointerEvents: 'none',
+    userSelect: 'none',
   },
   label: {
     position: 'absolute',
@@ -45,7 +47,6 @@ const styles = {
     justifyContent: 'center',
     fontSize: 16,
     opacity: 0.25,
-    pointerEvents: 'none',
   }
 };
 

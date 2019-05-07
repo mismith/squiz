@@ -122,16 +122,6 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
   const isPlaylistLastCompleted = isPlaylistThisRounds && round.completed;
   const isPlaylistAlreadyPlayed = rounds && round && rounds.some(r => r.playlistID === playlistID);
 
-  // store screen refresh/reload in state // @TODO: move this to page beforeunload
-  useEffect(() => {
-    if (!hasInteracted && game && !game.paused) {
-      // pause round until user interacts with screen
-      gameRef.set({
-        paused: FieldValue.serverTimestamp(),
-      }, { merge: true });
-    }
-  }, [hasInteracted, game && game.id]);
-
   async function endGame() {
     stop();
 
@@ -149,7 +139,6 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
   async function endTrack() {
     stop();
 
-    // mark the track as complete
     await tracksRef.doc(track.id).set({
       completed: FieldValue.serverTimestamp(),
     }, { merge: true });
@@ -238,6 +227,15 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
     }
   };
 
+  // store screen refresh/reload in state // @TODO: move this to page beforeunload
+  useEffect(() => {
+    if (!hasInteracted && game && !game.paused) {
+      // pause round until user interacts with screen
+      gameRef.set({
+        paused: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
+  }, [hasInteracted, game && game.id]);
   usePromised(async () => {
     // make sure the audio loads (skip track if not)
     try {
@@ -346,7 +344,6 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
     !loading && hasInteracted,
     !loading && isInProgress,
     !loading && pickedTracks,
-    !loading && handleNextClick,
   ]);
 
   if (loading) {
