@@ -51,14 +51,23 @@ const loadAudio = src => new Promise((resolve, reject) => {
     audio = null;
   }
 
-  audio = new Audio(src);
-  audio.addEventListener('loadeddata', () => {
-    resolve(audio);
+  const player = new Audio(src);
+  audio = player;
+  player.addEventListener('loadeddata', () => {
+    if (audio === player) {
+      resolve(player);
+    }
   });
-  audio.addEventListener('error', (err) => {
-    reject(err);
+  player.addEventListener('error', (err) => {
+    if (audio === player) {
+      reject(err);
+    }
   });
 });
+const play = async (src) => {
+  await loadAudio(src);
+  if (audio) audio.play();
+};
 
 const styles = {
   container: {
@@ -327,6 +336,8 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
                   <TileButton
                     image={track.album.images[0].url}
                     size={64}
+                    onMouseEnter={() => play(track.preview_url)}
+                    onMouseLeave={() => stop()}
                   />
                 </Tooltip>
               )}
