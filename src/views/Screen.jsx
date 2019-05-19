@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useDocumentData } from 'react-firebase-hooks/firestore';
+import { useDocumentData, useCollectionData } from 'react-firebase-hooks/firestore';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
+import MobileStepper from '@material-ui/core/MobileStepper';
 import CloseIcon from '@material-ui/icons/Close';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 
@@ -17,6 +19,7 @@ import Loader from '../components/Loader';
 import { usePromised } from '../helpers/util';
 import { firestore } from '../helpers/firebase';
 import { loadCategories, loadPlaylists } from '../helpers/spotify';
+import { ROUNDS_LIMIT } from '../helpers/game';
 
 const styles = {
   container: {
@@ -31,11 +34,19 @@ const styles = {
     flex: 'auto',
     overflow: 'auto',
   },
+  rounds: {
+    marginLeft: 'auto',
+    marginRight: 16,
+  },
+  stepper: {
+    background: 'transparent',
+  },
 };
 
 export default ({ gameID, categoryID, playlistID, match }) => {
   const gameRef = firestore.collection('games').doc(gameID);
   const { value: game, gameLoading } = useDocumentData(gameRef, null, 'id');
+  const { value: rounds } = useCollectionData(gameRef.collection('rounds'));
 
   // @TODO: why are these firing even when the deps don't change
   const [categories, categoriesLoading] = usePromised(() => loadCategories(), []);
@@ -109,12 +120,38 @@ export default ({ gameID, categoryID, playlistID, match }) => {
     <div style={styles.container}>
       <AppBar color="default" position="static">
         <Toolbar style={{justifyContent: 'center'}}>
-          <BackButton />
+          <Grid item xs={4}>
+            <BackButton />
+          </Grid>
 
           <GameCode gameID={gameID} />
 
-          {/* to even out whitespace and maintain random button horizontal centering */}
-          <BackButton style={{visibility: 'hidden'}} />
+          <Grid item container xs={4}>
+            {rounds && !!rounds.length &&
+              <>
+                <Typography
+                  variant="overline"
+                  component="small"
+                  color={game && game.completed ? 'secondary' : 'default'}
+                  style={styles.rounds}
+                >
+                  {game && game.completed
+                    ? 'Game Over'
+                    : `Round ${rounds.length} of ${ROUNDS_LIMIT}`
+                  }
+                </Typography>
+                {game && !game.completed &&
+                  <MobileStepper
+                    variant="dots"
+                    position="static"
+                    steps={ROUNDS_LIMIT}
+                    activeStep={rounds.length - 1}
+                    style={styles.stepper}
+                  />
+                }
+              </>
+            }
+          </Grid>
         </Toolbar>
       </AppBar>
 
