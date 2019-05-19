@@ -20,6 +20,9 @@ const styles = {
     alignItems: 'center',
     margin: 'auto',
   },
+  name: {
+    pointerEvents: 'none',
+  },
 };
 
 export default ({ gameRef }) => {
@@ -84,7 +87,7 @@ export default ({ gameRef }) => {
             </Typography>
             <PlayerChange player={player} />
           </Grid>
-          <SpotifyButton variant={player.$variant} color={player.$color}>
+          <SpotifyButton variant={player.$variant} color={player.$color} style={styles.name}>
             {player.name}
           </SpotifyButton>
         </div>
