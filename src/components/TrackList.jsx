@@ -125,6 +125,9 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
     loading: trackLoading,
   } = useTrack(roundRef, tracks, usedTrackIDs.split(','));
 
+  const playersRef = gameRef.collection('players').orderBy('score', 'desc');
+  const { value: [winner] = [] } = useCollectionData(playersRef, null, 'id');
+
   const loading = categoryLoading || playlistLoading || tracksLoading
     || gameLoading || roundsLoading || roundRefLoading || roundLoading || trackLoading;
   const isInProgress = game && game.timestamp && !game.completed
@@ -344,10 +347,11 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
             </TileGrid>
           }
 
-          {game && game.completed ? (
-            <SpotifyButton color="secondary" style={{margin: 16}} disabled>
-              Game Over!
-            </SpotifyButton>
+          {game && game.completed && winner ? (
+            <Typography variant="h2" color="secondary" style={{textAlign: 'center', margin: 32}}>
+              <span role="img" aria-label="Woohoo!">🎉🎉🎉</span><br />
+              {winner.name} wins!
+            </Typography>
           ) : (
             <SpotifyButton
               icon={<PlayArrowIcon />}
