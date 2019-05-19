@@ -35,11 +35,13 @@ const styles = {
     overflow: 'auto',
   },
   rounds: {
-    marginLeft: 'auto',
-    marginRight: 16,
-  },
-  stepper: {
-    background: 'transparent',
+    label: {
+      marginLeft: 'auto',
+      marginRight: 16,
+    },
+    stepper: {
+      background: 'transparent',
+    },
   },
 };
 
@@ -96,7 +98,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
                   variant="overline"
                   component="small"
                   color={game && game.completed ? 'secondary' : 'default'}
-                  style={styles.rounds}
+                  style={styles.rounds.label}
                 >
                   {game && game.completed
                     ? 'Game Over'
@@ -109,7 +111,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
                     position="static"
                     steps={ROUNDS_LIMIT}
                     activeStep={rounds.length - 1}
-                    style={styles.stepper}
+                    style={styles.rounds.stepper}
                   />
                 }
               </>
