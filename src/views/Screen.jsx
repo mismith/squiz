@@ -64,68 +64,27 @@ export default ({ gameID, categoryID, playlistID, match }) => {
     match,
   };
 
-  const BackButton = (props) => {
-    let to = '';
-    if (gameID && categoryID) {
-      to += `/games/${gameID}`;
-    }
-    if (categoryID && playlistID) {
-      to += `/${categoryID}`;
-    }
-    return (
-      <Button component={Link} to={to} {...props}>
-        {!categoryID ? (
-          <CloseIcon style={{marginRight: 8}} />
-        ) : (
-          <ArrowBackIosIcon style={{marginRight: 8}} />
-        )}
-        {!categoryID ? 'Exit' : 'Back'}
-      </Button>
-    );
-  };
-
-  const Body = () => {
-    if (loading) {
-      return (
-        <Loader />
-      );
-    }
-    if (game && !game.id) {
-      return (
-        <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
-          Game not found
-        </Typography>
-      );
-    }
-
-    const Content = () => {
-      if (playlistID) {
-        return (
-          <TrackList {...childProps} />
-        );
-      }
-      if (categoryID) {
-        return (
-          <PlaylistList {...childProps} />
-        );
-      }
-      return (
-        <CategoryList {...childProps} />
-      );
-    };
-    return (
-      <div style={styles.content}>
-        <Content />
-      </div>
-    );
-  };
+  let to = '';
+  if (gameID && categoryID) {
+    to += `/games/${gameID}`;
+  }
+  if (categoryID && playlistID) {
+    to += `/${categoryID}`;
+  }
 
   return (
     <div style={styles.container}>
       <AppBar color="default" position="static">
         <Toolbar style={{justifyContent: 'center'}}>
           <Grid item xs={4}>
-            <BackButton />
+            <Button component={Link} to={to}>
+              {!categoryID ? (
+                <CloseIcon style={{marginRight: 8}} />
+              ) : (
+                <ArrowBackIosIcon style={{marginRight: 8}} />
+              )}
+              {!categoryID ? 'Exit' : 'Back'}
+            </Button>
           </Grid>
 
           <GameCode gameID={gameID} />
@@ -159,7 +118,24 @@ export default ({ gameID, categoryID, playlistID, match }) => {
         </Toolbar>
       </AppBar>
 
-      <Body />
+      {loading
+        ? <Loader />
+        : (game && !game.id
+          ? (
+            <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
+              Game not found
+            </Typography>
+          ) : (
+            <div style={styles.content}>
+              {playlistID
+              ? <TrackList {...childProps} />
+              : categoryID
+                ? <PlaylistList {...childProps} />
+                : <CategoryList {...childProps} />
+              }
+            </div>
+          ))
+      }
   
       <AppBar color="default" position="static" style={{padding: '16px 0'}}>
         <Toolbar>
