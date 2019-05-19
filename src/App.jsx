@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom';
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Typography from '@material-ui/core/Typography';
 import NoSleep from 'nosleep.js';
@@ -40,12 +40,6 @@ export default () => {
     <BrowserRouter>
       <CssBaseline />
       <Switch>
-        <Route
-          exact
-          strict
-          path="/:url+/"
-          render={props => <Redirect to={props.location.pathname.replace(/\/$/, '')}/>}
-        />
         <Route
           path="/"
           exact

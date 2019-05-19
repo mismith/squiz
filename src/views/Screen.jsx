@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useDocumentData, useCollectionData } from 'react-firebase-hooks/firestore';
 import AppBar from '@material-ui/core/AppBar';
@@ -48,7 +48,6 @@ export default ({ gameID, categoryID, playlistID, match }) => {
   const { value: game, gameLoading } = useDocumentData(gameRef, null, 'id');
   const { value: rounds } = useCollectionData(gameRef.collection('rounds'));
 
-  // @TODO: why are these firing even when the deps don't change
   const [categories, categoriesLoading] = usePromised(() => loadCategories(), []);
   const [playlists, playlistsLoading] = usePromised(() => categoryID && loadPlaylists(categoryID), [categoryID]);
   const loading = gameLoading
@@ -65,17 +64,27 @@ export default ({ gameID, categoryID, playlistID, match }) => {
     match,
   };
 
-  const BackButton = (props) => (
-    <Button component={Link} to={categoryID ? '.' : '..'} {...props}>
-      {!categoryID ? (
-        <CloseIcon style={{marginRight: 8}} />
-      ) : (
-        <ArrowBackIosIcon style={{marginRight: 8}} />
-      )}
-      {!categoryID ? 'Exit' : 'Back'}
-    </Button>
-  );
-  const body = useMemo(() => {
+  const BackButton = (props) => {
+    let to = '';
+    if (gameID && categoryID) {
+      to += `/games/${gameID}`;
+    }
+    if (categoryID && playlistID) {
+      to += `/${categoryID}`;
+    }
+    return (
+      <Button component={Link} to={to} {...props}>
+        {!categoryID ? (
+          <CloseIcon style={{marginRight: 8}} />
+        ) : (
+          <ArrowBackIosIcon style={{marginRight: 8}} />
+        )}
+        {!categoryID ? 'Exit' : 'Back'}
+      </Button>
+    );
+  };
+
+  const Body = () => {
     if (loading) {
       return (
         <Loader />
@@ -88,6 +97,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
         </Typography>
       );
     }
+
     const Content = () => {
       if (playlistID) {
         return (
@@ -103,18 +113,12 @@ export default ({ gameID, categoryID, playlistID, match }) => {
         <CategoryList {...childProps} />
       );
     };
-
     return (
       <div style={styles.content}>
         <Content />
       </div>
     );
-  }, [
-    !loading && game && game.id,
-    !loading && game && game.completed,
-    !loading && categoryID,
-    !loading && playlistID,
-  ]);
+  };
 
   return (
     <div style={styles.container}>
@@ -155,7 +159,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
         </Toolbar>
       </AppBar>
 
-      {body}
+      <Body />
   
       <AppBar color="default" position="static" style={{padding: '16px 0'}}>
         <Toolbar>
