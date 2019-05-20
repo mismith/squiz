@@ -34,7 +34,7 @@ export default ({ gameRef }) => {
 
   const playersRef = gameRef.collection('players').orderBy('timestamp');
   const {
-    value: players = [{ id: null, name: 'Loading' }],
+    value: players = [],
     loading: playersLoading,
   } = useCollectionData(playersRef, null, 'id');
 
@@ -92,6 +92,12 @@ export default ({ gameRef }) => {
           </SpotifyButton>
         </div>
       )}
+      {playersWithResponses.length < 2 &&
+        <div style={{textAlign: 'center', margin: 'auto'}}>
+          <Typography variant="overline" component="div">Join Game at</Typography>
+          <Typography variant="h4" color="primary">{window.location.host}</Typography>
+        </div>
+      }
     </>
   );
 };
