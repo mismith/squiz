@@ -2,10 +2,17 @@
   "name": "squiz",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "deploy": "yarn run build && firebase deploy"
+  },
   "dependencies": {
     "@material-ui/core": "^3.9.3",
     "@material-ui/icons": "^3.0.2",
-    "firebase": "^5.10.0",
+    "firebase": "^6.0.2",
     "nosleep.js": "^0.9.0",
     "react": "^16.8.6",
     "react-count-to": "^0.12.0",
@@ -20,11 +27,8 @@
     "spotify-web-api-js": "^1.2.0",
     "weighted-random": "^0.1.0"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+  "devDependencies": {
+    "yarn": "^1.16.0"
   },
   "eslintConfig": {
     "extends": "react-app"
