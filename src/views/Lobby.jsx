@@ -62,8 +62,31 @@ export default ({ history }) => {
       return;
     }
 
-    // @TODO: check that this game isn't completed first
-    const newGameID = hostGameID || `${Math.round(Math.random() * 8999) + 1000}`; // [1000, 9999]
+    // resume existing (uncompleted) game first, if applicable
+    let newGameID;
+    if (hostGameID) {
+      const game = await gamesRef.doc(hostGameID).get();
+      if (game.exists) {
+        const { completed } = game.data();
+        if (!completed) {
+          // game exists and is still in progress, so resume
+          newGameID = hostGameID;
+        }
+      } else {
+        // game doesn't exist, so we can reuse the stored gameID
+        newGameID = hostGameID;
+      }
+    }
+    // otherwise, find an unused gameID
+    if (!newGameID) {
+      const findUnusedGameID = async () => {
+        newGameID = `${Math.round(Math.random() * 8999) + 1000}`; // [1000, 9999]
+        const { exists } = await gamesRef.doc(newGameID).get();
+        if (exists) await findUnusedGameID();
+      };
+      await findUnusedGameID();
+    }
+    // start game
     await gamesRef.doc(newGameID).set({
       // @TODO
       timestamp: FieldValue.serverTimestamp(),
