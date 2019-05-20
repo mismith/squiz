@@ -24,6 +24,7 @@ export default ({ history }) => {
   }, []);
 
   const { register, handleSubmit, errors } = useForm();
+  const [joinGameID, setJoinGameID] = useLocalStorage('joinGameID');
   const [playerName, setPlayerName] = useLocalStorage('playerName');
   const [hostGameID, setHostGameID] = useLocalStorage('hostGameID');
   const [gameIDError, setGameIDError] = useState('');
@@ -127,7 +128,9 @@ export default ({ history }) => {
             inputProps={{name: 'joinGameID'}}
             error={!!(errors.joinGameID || gameIDError)}
             helperText={errors.joinGameID ? errors.joinGameID.message : gameIDError}
+            value={joinGameID}
             onInput={() => setGameIDError('')}
+            onChange={event => setJoinGameID(event.target.value)}
           />
         </Grid>
         <Grid item xs={12}>
