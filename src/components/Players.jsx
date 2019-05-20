@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import CountTo from 'react-count-to';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Zoom from '@material-ui/core/Zoom';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@material-ui/core';
 
 import SpotifyButton from './SpotifyButton';
 import {
@@ -21,7 +22,6 @@ const styles = {
     margin: 'auto',
   },
   name: {
-    pointerEvents: 'none',
   },
 };
 
@@ -32,11 +32,11 @@ export default ({ gameRef }) => {
   const { value: round, loading: roundLoading } = useDocumentData(roundRef, null, 'id');
   const { track, loading: trackLoading } = useTrack(roundRef);
 
-  const playersRef = gameRef.collection('players').orderBy('timestamp');
+  const playersRef = gameRef.collection('players');
   const {
     value: players = [],
     loading: playersLoading,
-  } = useCollectionData(playersRef, null, 'id');
+  } = useCollectionData(playersRef.orderBy('timestamp'), null, 'id');
 
   const loading = gameLoading || roundRefLoading || roundLoading || trackLoading
     || playersLoading;
@@ -68,6 +68,13 @@ export default ({ gameRef }) => {
     </Zoom>
   );
 
+  const [playerToRemove, setPlayerToRemove] = useState(null);
+  const handleClose = () => setPlayerToRemove(null);
+  const handleRemove = async () => {
+    await playersRef.doc(playerToRemove.id).delete();
+    handleClose();
+  };
+
   return (
     <>
       {playersWithResponses.map(player =>
@@ -87,11 +94,28 @@ export default ({ gameRef }) => {
             </Typography>
             <PlayerChange player={player} />
           </Grid>
-          <SpotifyButton variant={player.$variant} color={player.$color} style={styles.name}>
+          <SpotifyButton
+            variant={player.$variant}
+            color={player.$color}
+            style={styles.name}
+            onClick={() => setPlayerToRemove(player)}
+          >
             {player.name}
           </SpotifyButton>
         </div>
       )}
+      <Dialog open={!!playerToRemove} onClose={handleClose}>
+        <DialogTitle>Remove player?</DialogTitle>
+        {playerToRemove &&
+          <DialogContent>
+            <Typography>Are you sure you want to remove <strong>{playerToRemove.name}</strong> from the game?</Typography>
+          </DialogContent>
+        }
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button color="primary" onClick={handleRemove}>Remove</Button>
+        </DialogActions>
+      </Dialog>
       {playersWithResponses.length < 2 &&
         <div style={{textAlign: 'center', margin: 'auto'}}>
           <Typography variant="overline" component="div">Join Game at</Typography>
