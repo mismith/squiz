@@ -27,6 +27,7 @@ export default ({ history }) => {
   const [playerName, setPlayerName] = useLocalStorage('playerName');
   const [hostGameID, setHostGameID] = useLocalStorage('hostGameID');
   const [gameIDError, setGameIDError] = useState('');
+  const [playerNameError, setPlayerNameError] = useState('');
   const [loading, setLoading] = useState({ join: false, host: false });
 
   const gamesRef = firestore.collection('games');
@@ -43,8 +44,14 @@ export default ({ history }) => {
       return;
     }
 
-    const { id: newPlayerID } = await gameRef.collection('players').add({
-      // @TODO
+    const playersRef = gameRef.collection('players');
+    const playerNames = (await playersRef.get()).docs.map(d => (d.data() || {}).name);
+    if (playerName && playerNames.includes(playerName)) {
+      setLoading({ join: false });
+      setPlayerNameError('A player is already using this name');
+      return;
+    }
+    const { id: newPlayerID } = await playersRef.add({
       name: playerName,
       timestamp: FieldValue.serverTimestamp(),
     });
@@ -120,7 +127,7 @@ export default ({ history }) => {
             inputProps={{name: 'joinGameID'}}
             error={!!(errors.joinGameID || gameIDError)}
             helperText={errors.joinGameID ? errors.joinGameID.message : gameIDError}
-            onChange={() => setGameIDError('')}
+            onInput={() => setGameIDError('')}
           />
         </Grid>
         <Grid item xs={12}>
@@ -128,7 +135,14 @@ export default ({ history }) => {
             label="Player Name"
             variant="outlined"
             fullWidth
+            inputRef={register({
+              required: 'Required',
+            })}
+            inputProps={{name: 'playerName'}}
+            error={!!(errors.playerName || playerNameError)}
+            helperText={errors.joinGameID ? errors.joinGameID.message : playerNameError}
             value={playerName}
+            onInput={() => setPlayerNameError('')}
             onChange={event => setPlayerName(event.target.value)}
           />
         </Grid>
