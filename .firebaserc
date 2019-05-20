@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "firebase-mismith"
+  },
+  "targets": {
+    "firebase-mismith": {
+      "hosting": {
+        "squiz": [
+          "squiz-mismith"
+        ]
+      }
+    }
+  }
+}
