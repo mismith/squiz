@@ -2,7 +2,7 @@ import { useCollection, useCollectionData, useDocumentData } from 'react-firebas
 import weightedRandom from 'weighted-random';
 
 export const ROUNDS_LIMIT = 5;
-export const TRACKS_LIMIT = 10;
+export const TRACKS_LIMIT = 8;
 export const CHOICES_TIMEOUT = 10 * 1000;
 export const CHOICES_STARTUP = 1 * 1000;
 export const RESULTS_TIMEOUT = 3 * 1000;
