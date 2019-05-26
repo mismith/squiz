@@ -97,7 +97,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
                 <Typography
                   variant="overline"
                   component="small"
-                  color={game && game.completed ? 'secondary' : 'default'}
+                  color={game && game.completed ? 'secondary' : 'inherit'}
                   style={styles.rounds.label}
                 >
                   {game && game.completed

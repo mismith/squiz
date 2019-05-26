@@ -25,10 +25,11 @@ const styles = {
   },
 };
 
-export default ({ label, image, size = 200, style, children, ...props }) => (
+export default React.forwardRef(({ label, image, size = 200, style, children, ...props }, ref) => (
   <ButtonBase
     style={{ ...styles.button, ...style, width: size, height: size }}
     {...props}
+    ref={ref}
   >
     {image &&
       <img src={image} alt="" style={styles.img} />
@@ -38,4 +39,4 @@ export default ({ label, image, size = 200, style, children, ...props }) => (
     }
     {children}
   </ButtonBase>
-);
+));

@@ -106,7 +106,7 @@ export default ({ history }) => {
 
   return (
     <form onSubmit={handleSubmit(joinGame)} style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'auto'}}>
-      <Grid container spacing={16} style={{maxWidth: 400, padding: 16, margin: 0}}>
+      <Grid container spacing={2} style={{maxWidth: 400, padding: 16, margin: 0}}>
         <Grid item xs={12}>
           <Typography variant="h2" component="h1" style={{textAlign: 'center', marginBottom: 16}}>
             Squiz
