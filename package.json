@@ -28,7 +28,7 @@
     "weighted-random": "^0.1.0"
   },
   "devDependencies": {
-    "yarn": "^1.16.0"
+    "yarn": "^1.17.3"
   },
   "eslintConfig": {
     "extends": "react-app"
