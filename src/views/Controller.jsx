@@ -13,6 +13,91 @@ import GameCode from '../components/GameCode';
 import { firestore, FieldValue } from '../helpers/firebase';
 import { useLatestDocument, useTrack } from '../helpers/game';
 
+const directions = [
+  { dir: 'Up', icon: KeyboardArrowUp },
+  { dir: 'Left', icon: KeyboardArrowLeft },
+  { dir: 'Right', icon: KeyboardArrowRight },
+  { dir: 'Down', icon: KeyboardArrowDown },
+];
+
+function usePlayerSwipes(gameRef, playerID) {
+  const { value: game } = useDocumentData(gameRef, null, 'id');
+  const roundsRef = gameRef.collection('rounds');
+  const { value: { ref: roundRef } = {} } = useLatestDocument(roundsRef);
+  const { tracksRef, track } = useTrack(roundRef);
+
+  const [swipe, setSwipe] = useState(null);
+  useEffect(() => {
+    // reset local swipe marker for each new track
+    setSwipe(null);
+  }, [track?.id]);
+  const handlers = useSwipeable({
+    // send swipes to server for processing
+    async onSwiped({ dir }) {
+      if (!game?.paused && !track?.completed && dir !== swipe) {
+        // send selection to server
+        const choiceIndex = directions.findIndex(direction => direction.dir === dir);
+        const choice = track.choices[choiceIndex];
+        tracksRef.doc(track.id).set({
+          players: {
+            [playerID]: {
+              choiceID: choice && choice.id,
+              timestamp: FieldValue.serverTimestamp(),
+            },
+          },
+        }, { merge: true });
+
+        // show selection locally
+        setSwipe(dir);
+      }
+    },
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true, // @DEBUG
+  });
+
+  return {
+    swipe,
+    handlers,
+  };
+}
+
+function useZoomPrevention() {
+  useEffect(() => {
+    // prevent zooming on mobile: https://stackoverflow.com/a/39711930/888928
+    const handleGestureStart = e => e.preventDefault();
+    document.addEventListener('gesturestart', handleGestureStart);
+
+    return () => {
+      document.removeEventListener('gesturestart', handleGestureStart);
+    };
+  }, []);
+}
+
+function usePlayerConnectivityStatus(playerRef) {
+  useEffect(() => {
+    const setInactive = to => playerRef.set({
+      inactive: to,
+    }, { merge: true });
+
+    // monitor tab changes
+    const handleVisibilityChange = () => {
+      setInactive(document.hidden ? FieldValue.serverTimestamp() : FieldValue.delete());
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // monitor tab closes
+    const handleBeforeUnload = () => {
+      setInactive(FieldValue.serverTimestamp());
+    };
+    document.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [playerRef]);
+}
+
 const styles = {
   controller: {
     display: 'flex',
@@ -47,87 +132,16 @@ const styles = {
     justifyContent: 'center',
     fontSize: 16,
     opacity: 0.25,
-  }
+  },
 };
 
 export default ({ gameID, playerID }) => {
-  const directions = [
-    { dir: 'Up', icon: KeyboardArrowUp },
-    { dir: 'Left', icon: KeyboardArrowLeft },
-    { dir: 'Right', icon: KeyboardArrowRight },
-    { dir: 'Down', icon: KeyboardArrowDown },
-  ];
-
   const gameRef = firestore.collection('games').doc(gameID);
-  const { value: game } = useDocumentData(gameRef, null, 'id');
-  const roundsRef = gameRef.collection('rounds');
-  const { value: { ref: roundRef } = {} } = useLatestDocument(roundsRef);
-  const { tracksRef, track } = useTrack(roundRef);
-
   const playerRef = gameRef.collection('players').doc(playerID);
 
-  // handle user swipes
-  const [swipe, setSwipe] = useState(null);
-  useEffect(() => {
-    // reset local swipe marker for each new track
-    setSwipe(null);
-  }, [track && track.id]);
-  const handlers = useSwipeable({
-    // send swipes to server for processing
-    async onSwiped({ dir }) {
-      if (game && !game.paused && track && !track.completed && dir !== swipe) {
-        // send selection to server
-        const choiceIndex = directions.findIndex(direction => direction.dir === dir);
-        const choice = track.choices[choiceIndex];
-        tracksRef.doc(track.id).set({
-          players: {
-            [playerID]: {
-              choiceID: choice && choice.id,
-              timestamp: FieldValue.serverTimestamp(),
-            },
-          },
-        }, { merge: true });
-
-        // show selection locally
-        setSwipe(dir);
-      }
-    },
-    preventDefaultTouchmoveEvent: true,
-    trackMouse: true, // @DEBUG
-  });
-  useEffect(() => {
-    // prevent zooming on mobile: https://stackoverflow.com/a/39711930/888928
-    const handleGestureStart = e => e.preventDefault();
-    document.addEventListener('gesturestart', handleGestureStart);
-
-    return () => {
-      document.removeEventListener('gesturestart', handleGestureStart);
-    };
-  }, []);
-
-  // maintain player connectivity status
-  useEffect(() => {
-    const setInactive = to => playerRef.set({
-      inactive: to,
-    }, { merge: true });
-
-    // monitor tab changes
-    const handleVisibilityChange = () => {
-      setInactive(document.hidden ? FieldValue.serverTimestamp() : FieldValue.delete());
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // monitor tab closes
-    const handleBeforeUnload = () => {
-      setInactive(FieldValue.serverTimestamp());
-    };
-    document.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
+  useZoomPrevention();
+  usePlayerConnectivityStatus(playerRef);
+  const { swipe, handlers } = usePlayerSwipes(gameRef, playerID);
 
   return (
     <div style={styles.controller} {...handlers}>
@@ -138,7 +152,7 @@ export default ({ gameID, playerID }) => {
       </AppBar>
 
       <Typography component="div" color="textSecondary" style={styles.directions}>
-        {directions.map(({ dir, icon: DirIcon}) =>
+        {directions.map(({ dir, icon: DirIcon }) =>
           <div key={dir} style={{
             ...styles.direction,
             margin: (dir === 'Up' || dir === 'Down') && 'calc(25% - 96px) 10px',

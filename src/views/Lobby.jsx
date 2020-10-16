@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useForm from 'react-hook-form'
 import useLocalStorage from 'react-use-localstorage';
 import Grid from '@material-ui/core/Grid';
@@ -11,18 +11,6 @@ import { firestore, FieldValue } from '../helpers/firebase';
 import { login, retrieveAccessToken } from '../helpers/spotify';
 
 export default ({ history }) => {
-  useEffect(() => {
-    const { state } = retrieveAccessToken();
-    if (state) {
-      window.location.hash = '';
-      if (state === 'hostGame') {
-        hostGame();
-      } else if (state[0] === '/') {
-        history.replace(state);
-      }
-    }
-  }, []);
-
   const { register, handleSubmit, errors } = useForm();
   const [joinGameID, setJoinGameID] = useLocalStorage('joinGameID');
   const [playerName, setPlayerName] = useLocalStorage('playerName');
@@ -59,7 +47,7 @@ export default ({ history }) => {
     setLoading({ join: false });
     history.push(`/games/${joinGameID}/players/${newPlayerID}`);
   }
-  async function hostGame() {
+  const hostGame = useCallback(async () => {
     if (loading.host) return;
     setLoading({ host: true });
 
@@ -102,7 +90,19 @@ export default ({ history }) => {
     setHostGameID(newGameID);
     setLoading({ host: false });
     history.push(`/games/${newGameID}`);
-  }
+  }, [gamesRef, history, hostGameID, loading.host, setHostGameID]);
+
+  useEffect(() => {
+    const { state } = retrieveAccessToken();
+    if (state) {
+      window.location.hash = '';
+      if (state === 'hostGame') {
+        hostGame();
+      } else if (state[0] === '/') {
+        history.replace(state);
+      }
+    }
+  }, [history, hostGame]);
 
   return (
     <form onSubmit={handleSubmit(joinGame)} style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'auto'}}>

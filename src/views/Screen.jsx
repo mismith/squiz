@@ -92,7 +92,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
           <GameCode gameID={gameID} />
 
           <Grid item container xs={4}>
-            {rounds && !!rounds.length &&
+            {!!rounds?.length &&
               <>
                 <Typography
                   variant="overline"
@@ -122,7 +122,7 @@ export default ({ gameID, categoryID, playlistID, match }) => {
 
       {loading
         ? <Loader />
-        : (game && !game.id
+        : (!game?.id
           ? (
             <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
               Game not found
