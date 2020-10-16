@@ -1,11 +1,17 @@
 import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 import ButtonBase from '@material-ui/core/ButtonBase';
 
-const styles = {
+const useStyles = makeStyles({
   button: {
     display: 'inline-flex',
     flexDirection: 'column',
     margin: 8,
+    transition: 'transform 300ms',
+
+    '&:hover': {
+      transform: 'scale(1.05)',
+    },
   },
   label: {
     display: 'flex',
@@ -20,23 +26,28 @@ const styles = {
     fontSize: 16,
     paddingTop: '50%',
   },
-  img: {
+  image: {
     width: '100%',
   },
-};
+});
 
-export default React.forwardRef(({ label, image, size = 200, style, children, ...props }, ref) => (
-  <ButtonBase
-    style={{ ...styles.button, ...style, width: size, height: size }}
-    {...props}
-    ref={ref}
-  >
-    {image &&
-      <img src={image} alt="" style={styles.img} />
-    }
-    {label &&
-      <div style={styles.label}>{label}</div>
-    }
-    {children}
-  </ButtonBase>
-));
+export default React.forwardRef(({ label, image, size = 200, style, children, ...props }, ref) => {
+  const classes = useStyles();
+
+  return (
+    <ButtonBase
+      className={classes.button}
+      style={{ ...style, width: size, height: size }}
+      {...props}
+      ref={ref}
+    >
+      {image &&
+        <img src={image} alt={label || ''} className={classes.image} />
+      }
+      {label &&
+        <div className={classes.label}>{label}</div>
+      }
+      {children}
+    </ButtonBase>
+  );
+});
