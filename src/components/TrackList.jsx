@@ -13,7 +13,7 @@ import TileButton from './TileButton';
 import SpotifyButton from './SpotifyButton';
 import Choices from './Choices';
 import Loader from './Loader';
-import { usePromised } from '../helpers/util';
+import usePromised from '../hooks/usePromised';
 import { FieldValue } from '../helpers/firebase';
 import {
   loadCategory,

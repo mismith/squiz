@@ -16,7 +16,7 @@ import PlaylistList from '../components/PlaylistList';
 import TrackList from '../components/TrackList';
 import Players from '../components/Players';
 import Loader from '../components/Loader';
-import { usePromised } from '../helpers/util';
+import usePromised from '../hooks/usePromised';
 import { firestore } from '../helpers/firebase';
 import { loadCategories, loadPlaylists } from '../helpers/spotify';
 import { ROUNDS_LIMIT } from '../helpers/game';

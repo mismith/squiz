@@ -1,14 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Typography from '@material-ui/core/Typography';
-import NoSleep from 'nosleep.js';
 
 import Lobby from './views/Lobby';
 import Screen from './views/Screen';
 import Controller from './views/Controller';
-
-const noSleep = new NoSleep();
+import useNoSleep from './hooks/useNoSleep';
 
 const NotFound = (props) => (
   <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
@@ -18,23 +16,7 @@ const NotFound = (props) => (
 
 export default () => {
   // prevent screen from sleeping
-  useEffect(() => {
-    const add = () => {
-      noSleep.enable();
-      remove();
-    };
-    const remove = () => {
-      document.removeEventListener('click', add);
-      document.removeEventListener('touchstart', add);
-    };
-    document.addEventListener('click', add);
-    document.addEventListener('touchstart', add);
-
-    return () => {
-      noSleep.disable();
-      remove();
-    };
-  }, []);
+  useNoSleep();
 
   return (
     <BrowserRouter>

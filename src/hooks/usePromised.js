@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export const usePromised = (fn, dependencies = undefined, intialValue = undefined) => {
+export default function usePromised(fn, dependencies = undefined, intialValue = undefined) {
   const [value, setValue] = useState(intialValue);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -35,4 +35,4 @@ export const usePromised = (fn, dependencies = undefined, intialValue = undefine
     loading,
     error,
   ];
-};
+}
