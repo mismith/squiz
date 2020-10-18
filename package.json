@@ -15,6 +15,7 @@
     "firebase": "^6.0.2",
     "nosleep.js": "^0.9.0",
     "react": "^16.8.6",
+    "react-async-hook": "^3.6.2",
     "react-count-to": "^0.12.0",
     "react-dom": "^16.8.6",
     "react-firebase-hooks": "^1.2.0",

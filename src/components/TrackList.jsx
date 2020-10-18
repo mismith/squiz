@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import useLocalStorage from 'react-use-localstorage';
+import { useAsync } from 'react-async-hook';
 import shuffleArray from 'shuffle-array';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
@@ -13,7 +14,6 @@ import TileButton from './TileButton';
 import SpotifyButton from './SpotifyButton';
 import Choices from './Choices';
 import Loader from './Loader';
-import usePromised from '../hooks/usePromised';
 import { FieldValue } from '../helpers/firebase';
 import {
   loadCategory,
@@ -105,10 +105,19 @@ const styles = {
   },
 };
 
-export default ({ gameID, categoryID, playlistID, gameRef }) => {
-  const [category, categoryLoading] = usePromised(() => loadCategory(categoryID), [categoryID]);
-  const [playlist, playlistLoading] = usePromised(() => loadPlaylist(playlistID), [playlistID]);
-  const [tracks, tracksLoading] = usePromised(() => loadTracks(playlistID), [playlistID]);
+export default ({ categoryID, playlistID, gameRef }) => {
+  const {
+    result: category,
+    loading: categoryLoading,
+  } = useAsync(() => loadCategory(categoryID), [categoryID]);
+  const {
+    result: playlist,
+    loading: playlistLoading,
+  } = useAsync(() => loadPlaylist(playlistID), [playlistID]);
+  const {
+    result: tracks,
+    loading: tracksLoading,
+  } = useAsync(() => loadTracks(playlistID), [playlistID]);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [usedTrackIDs, setUsedTrackIDs] = useLocalStorage('usedTracks', '');
 
@@ -252,7 +261,7 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
       }, { merge: true });
     }
   }, [hasInteracted, game?.id]);
-  usePromised(async () => {
+  useAsync(async () => {
     // make sure the audio loads (skip track if not)
     try {
       if (hasInteracted && track && track.src && !track.completed) {
@@ -273,7 +282,7 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
       // e.g. remove broken track -> nextTrack()
     }
   }, [hasInteracted, track?.src]);
-  usePromised(async () => {
+  useAsync(async () => {
     if (hasInteracted && track && track.completed) {
       // update all player scores
       await Promise.all(Object.entries(track.players || {}).map(async ([playerID, response]) => {

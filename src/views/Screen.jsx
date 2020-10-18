@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useDocumentData, useCollectionData } from 'react-firebase-hooks/firestore';
+import { useAsync } from 'react-async-hook';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
@@ -16,7 +17,6 @@ import PlaylistList from '../components/PlaylistList';
 import TrackList from '../components/TrackList';
 import Players from '../components/Players';
 import Loader from '../components/Loader';
-import usePromised from '../hooks/usePromised';
 import { firestore } from '../helpers/firebase';
 import { loadCategories, loadPlaylists } from '../helpers/spotify';
 import { ROUNDS_LIMIT } from '../helpers/game';
