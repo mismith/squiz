@@ -42,47 +42,70 @@ const handleAccessTokenExpired = (err) => {
   throw err;
 };
 
-export async function loadCategories() {
-  const { categories } = await spotify.getCategories({ limit: 50 })
-    .catch(handleAccessTokenExpired);
+const cache = {};
+async function loadCached(getter, key) {
+  if (cache[key] === undefined) {
+    cache[key] = await getter();
+  }
+  return cache[key];
+}
 
-  return categories.items;
+export async function loadCategories() {
+  return loadCached(async () => {
+    const { categories } = await spotify.getCategories({ limit: 50 })
+      .catch(handleAccessTokenExpired);
+  
+    return categories.items;
+  }, 'categories');
 }
 export async function loadPlaylists(categoryID) {
-  const { playlists } = await spotify.getCategoryPlaylists(categoryID, { limit: 50 })
-    .catch(handleAccessTokenExpired);
-
-  return playlists.items;
+  return loadCached(async () => {
+    const { playlists } = await spotify.getCategoryPlaylists(categoryID, { limit: 50 })
+      .catch(handleAccessTokenExpired);
+    
+    return playlists.items;
+  }, `playlists/${categoryID}`);
 }
 export async function loadCategory(categoryID) {
-  const category = await spotify.getCategory(categoryID)
-    .catch(handleAccessTokenExpired);
+  return loadCached(async () => {
+    const category = await spotify.getCategory(categoryID)
+      .catch(handleAccessTokenExpired);
 
-  return category;
+    return category;
+  }, `category/${categoryID}`);
 }
 export async function loadPlaylist(playlistID) {
-  const playlist = await spotify.getPlaylist(playlistID)
-    .catch(handleAccessTokenExpired);
+  return loadCached(async () => {
+    const playlist = await spotify.getPlaylist(playlistID)
+      .catch(handleAccessTokenExpired);
 
-  return playlist;
+    return playlist;
+  }, `playlist/${playlistID}`);
 }
 export async function loadTracks(playlistID) {
-  const { items } = await spotify.getPlaylistTracks(playlistID)
-    .catch(handleAccessTokenExpired);
+  const tracks = await loadCached(async () => {
+    const { items } = await spotify.getPlaylistTracks(playlistID)
+      .catch(handleAccessTokenExpired);
 
-  return items.map(({ track }) => track)
+    return items.map(({ track }) => track);
+  }, `tracks/${playlistID}`);
+
+  return tracks
     .filter(track => track.name.length < 24)
     .filter(track => track.artists.map(({ name }) => name).join(', ').length < 24)
     .sort((a, b) => b.popularity - a.popularity);
 }
 export async function loadDecoys(track) {
-  const { tracks } = await spotify.getRecommendations({
-    seed_tracks: track.id,
-    seed_artists: track.artists.map(({ id }) => id),
-  })
-    .catch(handleAccessTokenExpired);
+  const decoys = await loadCached(async () => {
+    const { tracks } = await spotify.getRecommendations({
+      seed_tracks: track.id,
+      seed_artists: track.artists.map(({ id }) => id),
+    })
+      .catch(handleAccessTokenExpired);
+    return tracks;
+  }, `decoys/${track.id}`);
 
-  return tracks
+  return decoys
     .filter(decoy => decoy.name !== track.name)
     .filter(decoy => decoy.name.length < 24)
     .filter(decoy => decoy.artists.map(({ name }) => name).join(', ').length < 24)
