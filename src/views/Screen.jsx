@@ -45,26 +45,8 @@ const styles = {
   },
 };
 
-export default ({ gameID, categoryID, playlistID, match }) => {
-  const gameRef = firestore.collection('games').doc(gameID);
-  const { value: game, gameLoading } = useDocumentData(gameRef, null, 'id');
+export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
   const { value: rounds } = useCollectionData(gameRef.collection('rounds'));
-
-  const [categories, categoriesLoading] = usePromised(() => loadCategories(), []);
-  const [playlists, playlistsLoading] = usePromised(() => categoryID && loadPlaylists(categoryID), [categoryID]);
-  const loading = gameLoading
-    || (!categoryID && categoriesLoading)
-    || (categoryID && playlistsLoading);
-
-  const childProps = {
-    gameID,
-    categoryID,
-    categories,
-    playlistID,
-    playlists,
-    gameRef,
-    match,
-  };
 
   let to = '';
   if (gameID && categoryID) {
@@ -75,73 +57,107 @@ export default ({ gameID, categoryID, playlistID, match }) => {
   }
 
   return (
-    <div style={styles.container}>
-      <AppBar color="default" position="static">
-        <Toolbar style={{justifyContent: 'center'}}>
-          <Grid item xs={4}>
-            <Button component={Link} to={to}>
+    <AppBar color="default" position="static">
+      <Toolbar style={{ justifyContent: 'center' }}>
+        <Grid item xs={4}>
+          <Button component={Link} to={to}>
               {!categoryID ? (
-                <CloseIcon style={{marginRight: 8}} />
+                <CloseIcon style={{ marginRight: 8 }} />
               ) : (
-                <ArrowBackIosIcon style={{marginRight: 8}} />
+                <ArrowBackIosIcon style={{ marginRight: 8 }} />
               )}
               {!categoryID ? 'Exit' : 'Back'}
-            </Button>
-          </Grid>
+          </Button>
+        </Grid>
 
-          <GameCode gameID={gameID} />
+        <GameCode gameID={gameID} />
 
-          <Grid item container xs={4}>
-            {!!rounds?.length &&
-              <>
-                <Typography
-                  variant="overline"
-                  component="small"
-                  color={game && game.completed ? 'secondary' : 'inherit'}
-                  style={styles.rounds.label}
-                >
-                  {game && game.completed
-                    ? 'Game Over'
-                    : `Round ${rounds.length} of ${ROUNDS_LIMIT}`
-                  }
-                </Typography>
-                {game && !game.completed &&
-                  <MobileStepper
-                    variant="dots"
-                    position="static"
-                    steps={ROUNDS_LIMIT}
-                    activeStep={rounds.length - 1}
-                    style={styles.rounds.stepper}
-                  />
+        <Grid item container xs={4}>
+          {!!rounds?.length &&
+            <>
+              <Typography
+                variant="overline"
+                component="small"
+                color={game?.completed ? 'secondary' : 'inherit'}
+                style={styles.rounds.label}
+              >
+                {game?.completed
+                  ? 'Game Over'
+                  : `Round ${rounds.length} of ${ROUNDS_LIMIT}`
                 }
-              </>
-            }
-          </Grid>
-        </Toolbar>
-      </AppBar>
+              </Typography>
+              {!game?.completed &&
+                <MobileStepper
+                  variant="dots"
+                  position="static"
+                  steps={ROUNDS_LIMIT}
+                  activeStep={rounds.length - 1}
+                  style={styles.rounds.stepper}
+                />
+              }
+            </>
+          }
+        </Grid>
+      </Toolbar>
+    </AppBar>
+  );
+}
+
+export default ({ gameID, categoryID, playlistID }) => {
+  const gameRef = firestore.collection('games').doc(gameID);
+  const {
+    value: game,
+    loading: gameLoading,
+  } = useDocumentData(gameRef, null, 'id');
+  const {
+    result: categories,
+    loading: categoriesLoading,
+  } = useAsync(() => loadCategories(), []);
+  const {
+    result: playlists,
+    loading: playlistsLoading,
+  } = useAsync(() => categoryID && loadPlaylists(categoryID), [categoryID]);
+  const loading = gameLoading || categoriesLoading || playlistsLoading;
+
+  return (
+    <div style={styles.container}>
+      <TopBar
+        gameID={gameID}
+        categoryID={categoryID}
+        playlistID={playlistID}
+        game={game}
+        gameRef={gameRef}
+      />
 
       {loading
         ? <Loader />
-        : (!game?.id
+        : (game?.id
           ? (
-            <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
+            <div style={styles.content}>
+              {!categoryID && (
+                <CategoryList categories={categories} />
+              )}
+              {categoryID && !playlistID && (
+                <PlaylistList playlists={playlists} />
+              )}
+              {categoryID && playlistID && (
+                <TrackList
+                  categoryID={categoryID}
+                  playlistID={playlistID}
+                  gameRef={gameRef}
+                />
+              )}
+            </div>
+          ) : (
+            <Typography variant="h3" color="secondary" style={{ margin: 'auto' }}>
               Game not found
             </Typography>
-          ) : (
-            <div style={styles.content}>
-              {playlistID
-              ? <TrackList {...childProps} />
-              : categoryID
-                ? <PlaylistList {...childProps} />
-                : <CategoryList {...childProps} />
-              }
-            </div>
           ))
       }
   
-      <AppBar color="default" position="static" style={{padding: '16px 0'}}>
+      <AppBar color="default" position="static" style={{ padding: '16px 0' }}>
         <Toolbar>
-          <Players {...childProps} />
+          <Players gameRef={gameRef} />
         </Toolbar>
       </AppBar>
     </div>
