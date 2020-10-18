@@ -245,13 +245,13 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
 
   // store screen refresh/reload in state // @TODO: move this to page beforeunload
   useEffect(() => {
-    if (!hasInteracted && game && !game.paused) {
+    if (!hasInteracted && !game?.paused) {
       // pause round until user interacts with screen
       gameRef.set({
         paused: FieldValue.serverTimestamp(),
       }, { merge: true });
     }
-  }, [hasInteracted, game && game.id]);
+  }, [hasInteracted, game?.id]);
   usePromised(async () => {
     // make sure the audio loads (skip track if not)
     try {
@@ -272,7 +272,7 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
       // @TODO: replace the broken track instead of just missing it
       // e.g. remove broken track -> nextTrack()
     }
-  }, [hasInteracted, track && track.src]);
+  }, [hasInteracted, track?.src]);
   usePromised(async () => {
     if (hasInteracted && track && track.completed) {
       // update all player scores
@@ -296,7 +296,7 @@ export default ({ gameID, categoryID, playlistID, gameRef }) => {
       });
       await next();
     }
-  }, [hasInteracted, track && track.completed]);
+  }, [hasInteracted, track?.completed]);
 
   const body = useMemo(() => {
     if (track && hasInteracted && isInProgress) {

@@ -8,8 +8,8 @@ import Screen from './views/Screen';
 import Controller from './views/Controller';
 import useNoSleep from './hooks/useNoSleep';
 
-const NotFound = (props) => (
-  <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
+const NotFound = ({ style, ...props }) => (
+  <Typography variant="h3" color="secondary" style={{ margin: 'auto', ...style }} {...props}>
     Not found
   </Typography>
 );
