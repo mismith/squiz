@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import useForm from 'react-hook-form'
 import useLocalStorage from 'react-use-localstorage';
+import { useAsync } from 'react-async-hook';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
+import IconButton from '@material-ui/core/IconButton';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import Clear from '@material-ui/icons/Clear';
+import Shuffle from '@material-ui/icons/Shuffle';
 
 import SpotifyButton from '../components/SpotifyButton';
 import SpotifyLoginButton from '../components/SpotifyLoginButton';
@@ -104,6 +109,20 @@ export default ({ history }) => {
     }
   }, [history, hostGame]);
 
+  const [remainingRandomNames, setRemainingRandomNames] = useState([]);
+  useAsync(async () => {
+    if (!remainingRandomNames.length) {
+      const url = 'http://names.drycodes.com/25?nameOptions=funnyWords';
+      const names = await (await fetch(`https://cors-anywhere.herokuapp.com/${url}`)).json();
+      setRemainingRandomNames(names);
+    }
+  }, [remainingRandomNames.length]);
+  const handleGeneratePlayerName = async () => {
+    const nextRandomName = remainingRandomNames.splice(0, 1);
+    setRemainingRandomNames(remainingRandomNames);
+    setPlayerName(nextRandomName);
+  };
+
   return (
     <form onSubmit={handleSubmit(joinGame)} style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'auto'}}>
       <Grid container spacing={2} style={{maxWidth: 400, padding: 16, margin: 0, marginBottom: 48}}>
@@ -131,6 +150,15 @@ export default ({ history }) => {
             value={joinGameID}
             onInput={() => setGameIDError('')}
             onChange={event => setJoinGameID(event.target.value)}
+            InputProps={{
+              endAdornment: Boolean(joinGameID) && (
+                <InputAdornment position="end">
+                  <IconButton edge="end" onClick={() => setJoinGameID('')}>
+                    <Clear />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
           />
         </Grid>
         <Grid item xs={12}>
@@ -147,6 +175,21 @@ export default ({ history }) => {
             value={playerName}
             onInput={() => setPlayerNameError('')}
             onChange={event => setPlayerName(event.target.value)}
+            InputProps={{
+              endAdornment: Boolean(playerName) ? (
+                <InputAdornment position="end">
+                  <IconButton edge="end" onClick={() => setPlayerName('')}>
+                    <Clear />
+                  </IconButton>
+                </InputAdornment>
+              ) : (Boolean(remainingRandomNames.length) && (
+                <InputAdornment position="end">
+                  <IconButton edge="end" onClick={handleGeneratePlayerName}>
+                    <Shuffle style={{ transform: 'rotate(180deg)' }} />
+                  </IconButton>
+                </InputAdornment>
+              ))
+            }}
           />
         </Grid>
         <Grid item xs={12}>
