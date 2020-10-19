@@ -4,9 +4,9 @@ import CountTo from 'react-count-to';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Zoom from '@material-ui/core/Zoom';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@material-ui/core';
 
 import SpotifyButton from './SpotifyButton';
+import DialogConfirm from './DialogConfirm';
 import {
   RESULTS_COUNTUP,
   getTrackPointsForPlayer,
@@ -104,18 +104,13 @@ export default ({ gameRef }) => {
           </SpotifyButton>
         </div>
       )}
-      <Dialog open={!!playerToRemove} onClose={handleClose}>
-        <DialogTitle>Remove player?</DialogTitle>
-        {playerToRemove &&
-          <DialogContent>
-            <Typography>Are you sure you want to remove <strong>{playerToRemove.name}</strong> from the game?</Typography>
-          </DialogContent>
-        }
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button color="primary" onClick={handleRemove}>Remove</Button>
-        </DialogActions>
-      </Dialog>
+      <DialogConfirm
+        open={Boolean(playerToRemove)}
+        title="Remove player?"
+        body={`Are you sure you want to remove <strong>${playerToRemove?.name}</strong> from the game?`}
+        onCancel={handleClose}
+        onConfirm={handleRemove}
+      />
       {playersWithResponses.length < 2 &&
         <div style={{textAlign: 'center', margin: 'auto'}}>
           <Typography variant="overline" component="div">Join Game at</Typography>
