@@ -31,6 +31,7 @@ import {
   trimTrack,
   getTrackPointsForPlayer,
   useLatestDocument,
+  endGame as endGameHelper,
 } from '../helpers/game';
 
 let audio;
@@ -149,9 +150,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
   async function endGame() {
     stop();
 
-    await gameRef.set({
-      completed: FieldValue.serverTimestamp(),
-    }, { merge: true });
+    await endGameHelper(gameRef);
   }
   async function endRound() {
     stop();

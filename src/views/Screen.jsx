@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useHistory } from 'react-router-dom';
 import { useDocumentData, useCollectionData } from 'react-firebase-hooks/firestore';
 import { useAsync } from 'react-async-hook';
 import AppBar from '@material-ui/core/AppBar';
@@ -17,9 +17,10 @@ import PlaylistList from '../components/PlaylistList';
 import TrackList from '../components/TrackList';
 import Players from '../components/Players';
 import Loader from '../components/Loader';
+import DialogConfirm from '../components/DialogConfirm';
 import { firestore } from '../helpers/firebase';
 import { loadCategories, loadPlaylists } from '../helpers/spotify';
-import { ROUNDS_LIMIT } from '../helpers/game';
+import { ROUNDS_LIMIT, endGame } from '../helpers/game';
 
 const styles = {
   container: {
@@ -56,18 +57,38 @@ export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
     to += `/${categoryID}`;
   }
 
+  const history = useHistory();
+  const [confirmQuit, setConfirmQuit] = useState(false);
+  const handleCancelQuit = () => setConfirmQuit(false);
+  const handleConfirmQuit = async () => {
+    await endGame(gameRef);
+    history.push('/');
+    handleCancelQuit();
+  };
+
   return (
     <AppBar color="default" position="static">
       <Toolbar style={{ justifyContent: 'center' }}>
         <Grid item xs={4}>
-          <Button component={Link} to={to}>
-              {!categoryID ? (
-                <CloseIcon style={{ marginRight: 8 }} />
-              ) : (
-                <ArrowBackIosIcon style={{ marginRight: 8 }} />
-              )}
-              {!categoryID ? 'Exit' : 'Back'}
-          </Button>
+          {categoryID ? (
+            <Button component={Link} to={to}>
+              <ArrowBackIosIcon style={{ marginRight: 8 }} />
+              Back
+            </Button>
+          ) : (
+            <Button onClick={() => setConfirmQuit(true)}>
+              <CloseIcon style={{ marginRight: 8 }} />
+              Quit
+            </Button>
+          )}
+
+          <DialogConfirm
+            open={Boolean(confirmQuit)}
+            title="Quit Game"
+            body="Are you sure you want to permanently end this game for all players?"
+            onCancel={handleCancelQuit}
+            onConfirm={handleConfirmQuit}
+          />
         </Grid>
 
         <GameCode gameID={gameID} />

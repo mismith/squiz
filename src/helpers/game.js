@@ -1,5 +1,6 @@
 import { useCollection, useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import weightedRandom from 'weighted-random';
+import { FieldValue } from './firebase';
 
 export const ROUNDS_LIMIT = 5;
 export const TRACKS_LIMIT = 8;
@@ -86,4 +87,10 @@ export function getTrackPointsForPlayer(track, playerID) {
     return points;
   }
   return null;
+}
+
+export async function endGame(gameRef) {
+  return gameRef.set({
+    completed: FieldValue.serverTimestamp(),
+  }, { merge: true });
 }
