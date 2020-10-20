@@ -140,6 +140,9 @@ export default ({ gameID, categoryID, playlistID }) => {
   } = useAsync(() => categoryID && loadPlaylists(categoryID), [categoryID]);
   const loading = gameLoading || categoriesLoading || playlistsLoading;
 
+  const playersRef = gameRef.collection('players').orderBy('score', 'desc');
+  const { value: [winner] = [] } = useCollectionData(playersRef, null, 'id');
+
   return (
     <div style={styles.container}>
       <TopBar
@@ -155,18 +158,29 @@ export default ({ gameID, categoryID, playlistID }) => {
         : (game?.id
           ? (
             <div style={styles.content}>
-              {!categoryID && (
-                <CategoryList categories={categories} />
-              )}
-              {categoryID && !playlistID && (
-                <PlaylistList playlists={playlists} />
-              )}
-              {categoryID && playlistID && (
-                <TrackList
-                  categoryID={categoryID}
-                  playlistID={playlistID}
-                  gameRef={gameRef}
-                />
+              {game?.completed ? (
+                <Typography variant="h2" color="secondary" style={{ textAlign: 'center', margin: 'auto' }}>
+                  <span role="img" aria-label="Woohoo!">🎉🎉🎉</span><br />
+                  {winner ? `${winner.name} wins!` : (
+                    <span style={{ fontVariant: 'all-small-caps' }}>Game Over</span>
+                  )}
+                </Typography>
+              ) : (
+                <>
+                  {!categoryID && (
+                    <CategoryList categories={categories} />
+                  )}
+                  {categoryID && !playlistID && (
+                    <PlaylistList playlists={playlists} />
+                  )}
+                  {categoryID && playlistID && (
+                    <TrackList
+                      categoryID={categoryID}
+                      playlistID={playlistID}
+                      gameRef={gameRef}
+                    />
+                  )}
+                </>
               )}
             </div>
           ) : (
