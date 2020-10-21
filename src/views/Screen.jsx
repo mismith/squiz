@@ -62,8 +62,8 @@ export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
   const handleCancelQuit = () => setConfirmQuit(false);
   const handleConfirmQuit = async () => {
     await endGame(gameRef);
-    history.push('/');
     handleCancelQuit();
+    history.push('/');
   };
 
   return (
