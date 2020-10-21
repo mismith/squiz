@@ -124,13 +124,13 @@ export default ({ history }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(joinGame)} style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'auto'}}>
-      <Grid container spacing={2} style={{maxWidth: 400, padding: 16, margin: 0, marginBottom: 48}}>
+    <form onSubmit={handleSubmit(joinGame)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'auto' }}>
+      <Grid container spacing={2} style={{ maxWidth: 400, padding: 16, margin: 0, marginBottom: 48 }}>
         <Grid item xs={12}>
-          <Typography variant="h2" component="h1" style={{textAlign: 'center', marginBottom: 16}}>
+          <Typography variant="h2" component="h1" style={{ textAlign: 'center', marginBottom: 16 }}>
             Squiz
           </Typography>
-          <Typography variant="h6" style={{textAlign: 'center', marginBottom: 16}}>
+          <Typography variant="h6" style={{ textAlign: 'center', marginBottom: 16 }}>
             Beat your friends to name that tune!
           </Typography>
         </Grid>
@@ -197,7 +197,7 @@ export default ({ history }) => {
             Join Game
           </SpotifyButton>
         </Grid>
-        <Grid item container xs={12} justify="center" style={{padding: 16, opacity: 0.5}}>
+        <Grid item container xs={12} justify="center" style={{ padding: 16, opacity: 0.5 }}>
           <Typography>&mdash; or &mdash;</Typography>
         </Grid>
         <Grid item xs={12}>

@@ -20,13 +20,13 @@ export default ({ categories = [] }) => {
             <Button
               component={Link}
               to={`${match.url}/${getRandomID(categories) || ''}`}
-              style={{marginLeft: 'auto', marginRight: 'auto'}}
+              style={{ marginLeft: 'auto', marginRight: 'auto' }}
             >
-              <ShuffleIcon style={{marginRight: 16}} />
+              <ShuffleIcon style={{ marginRight: 16 }} />
               Random
             </Button>
           </Toolbar>
-          <TileGrid style={{flex: 'auto'}}>
+          <TileGrid style={{ flex: 'auto' }}>
             {categories.map(category =>
               <TileButton
                 key={category.id}
@@ -39,7 +39,7 @@ export default ({ categories = [] }) => {
           </TileGrid>
         </>
       ) : (
-        <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
+        <Typography variant="h3" color="secondary" style={{ margin: 'auto' }}>
           Nothing found
         </Typography>
       )}

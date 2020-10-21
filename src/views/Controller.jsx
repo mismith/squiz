@@ -157,7 +157,7 @@ export default ({ gameID, playerID }) => {
             ...styles.direction,
             margin: (dir === 'Up' || dir === 'Down') && 'calc(25% - 96px) 10px',
           }}>
-            <DirIcon color={swipe === dir ? 'primary' : 'inherit'} style={{fontSize: 'inherit'}} />
+            <DirIcon color={swipe === dir ? 'primary' : 'inherit'} style={{ fontSize: 'inherit' }} />
           </div>
         )}
         <label style={styles.label}>Swipe</label>

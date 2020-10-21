@@ -28,10 +28,10 @@ export default ({ icon, loading, children, style, ...props }) => (
     variant="contained"
     color="primary"
     size="large"
-    style={{...styles.button, ...style}}
+    style={{ ...styles.button, ...style }}
     {...props}
   >
-    <span style={{display: 'flex', visibility: loading ? 'hidden' : undefined}}>
+    <span style={{ display: 'flex', visibility: loading ? 'hidden' : undefined }}>
       {icon &&
         <span style={styles.icon}>{icon}</span>
       }

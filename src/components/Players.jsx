@@ -63,7 +63,7 @@ export default ({ gameRef }) => {
   const PlayerChange = ({ player, ...props }) => (
     <Zoom in={gameActive && !!player.$change} {...props}>
       <Typography variant="h6" color="primary">
-        <span style={{margin: 4}}>+</span>{player.$change}
+        <span style={{ margin: 4 }}>+</span>{player.$change}
       </Typography>
     </Zoom>
   );
@@ -82,8 +82,8 @@ export default ({ gameRef }) => {
           key={player.id}
           style={{...styles.player, visibility: !player.id && 'hidden', opacity: player.inactive ? 0.5 : 1 }}
         >
-          <Grid container justify="center" alignItems="center" style={{marginBottom: 8}}>
-            <PlayerChange player={player} style={{visibility: 'hidden'}} />
+          <Grid container justify="center" alignItems="center" style={{ marginBottom: 8 }}>
+            <PlayerChange player={player} style={{ visibility: 'hidden' }} />
             <Typography variant="h5">
               <CountTo
                 from={player.score - player.$change}
@@ -112,7 +112,7 @@ export default ({ gameRef }) => {
         onConfirm={handleRemove}
       />
       {playersWithResponses.length < 2 &&
-        <div style={{textAlign: 'center', margin: 'auto'}}>
+        <div style={{ textAlign: 'center', margin: 'auto' }}>
           <Typography variant="overline" component="div">Join Game at</Typography>
           <Typography variant="h4" color="primary">{window.location.host}</Typography>
         </div>

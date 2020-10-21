@@ -309,7 +309,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
         <Choices
           choices={track.choices}
           correctID={track.completed && track.id}
-          style={{flex: 'auto', overflow: 'hidden'}}
+          style={{ flex: 'auto', overflow: 'hidden' }}
         />
       );
     }
@@ -321,7 +321,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
             <TileButton
               key={choice.id}
               image={choice.album.images[0].url}
-              style={{margin: 0}}
+              style={{ margin: 0 }}
             />
           )}
         </TileGrid>
@@ -330,7 +330,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
           <Typography color="textSecondary" variant="subtitle1">
             {category && category.name}
           </Typography>
-          <Typography color="textPrimary" variant="h4" style={{margin: 16}}>
+          <Typography color="textPrimary" variant="h4" style={{ margin: 16 }}>
             {playlist && playlist.name}
           </Typography>
 
@@ -354,7 +354,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
 
           <SpotifyButton
             icon={<PlayArrowIcon />}
-            style={{margin: 16}}
+            style={{ margin: 16 }}
             onClick={handleNextClick}
           >
             {isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`}

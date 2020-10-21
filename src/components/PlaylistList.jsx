@@ -20,13 +20,13 @@ export default ({ playlists = [] }) => {
             <Button
               component={Link}
               to={`${match.url}/${getRandomID(playlists) || ''}`}
-              style={{marginLeft: 'auto', marginRight: 'auto'}}
+              style={{ marginLeft: 'auto', marginRight: 'auto' }}
             >
-              <ShuffleIcon style={{marginRight: 16}} />
+              <ShuffleIcon style={{ marginRight: 16 }} />
               Random
             </Button>
           </Toolbar>
-          <TileGrid style={{flex: 'auto'}}>
+          <TileGrid style={{ flex: 'auto' }}>
             {playlists.map(playlist =>
               <TileButton
                 key={playlist.id}
@@ -38,7 +38,7 @@ export default ({ playlists = [] }) => {
           </TileGrid>
         </>
       ) : (
-        <Typography variant="h3" color="secondary" style={{margin: 'auto'}}>
+        <Typography variant="h3" color="secondary" style={{ margin: 'auto' }}>
           Nothing found
         </Typography>
       )}
