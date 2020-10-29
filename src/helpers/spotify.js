@@ -3,13 +3,13 @@ import SpotifyWebApi from 'spotify-web-api-js';
 export const spotify = new SpotifyWebApi();
 
 export function toQueryString(obj) {
-  return Object.entries(obj).map(([k, v]) => `${k}=${v}`).join('&');
+  return Object.entries(obj).map(([k, v]) => `${k}=${window.encodeURIComponent(v)}`).join('&');
 }
-export function fromQueryString(qs) {
-  return Array.from(new URLSearchParams(qs)).reduce((obj, [k, v]) => ({
-    ...obj,
-    [k]: v,
-  }), {});
+export function fromQueryString(qs = window.location.search.substr(1)) {
+  return Array.from(new URLSearchParams(qs)).reduce((obj, [k, v]) => {
+    obj[k] = v;
+    return obj;
+  }, {});
 }
 
 export function login(state) {
