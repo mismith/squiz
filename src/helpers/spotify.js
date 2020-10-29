@@ -36,8 +36,14 @@ export function retrieveAccessToken() {
 retrieveAccessToken();
 
 const handleAccessTokenExpired = (err) => {
-  if (err && err.status === 401) {
+  if (err?.status === 401) {
     return login(window.location.pathname);
+  }
+  throw err;
+};
+const handleAssetMissing = (err) => {
+  if (err?.status === 404) {
+    return undefined;
   }
   throw err;
 };
@@ -51,19 +57,25 @@ async function loadCached(getter, key) {
 }
 
 export async function loadCategories() {
-  return loadCached(async () => {
-    const { categories } = await spotify.getCategories({ limit: 50 })
-      .catch(handleAccessTokenExpired);
+  const categories = await loadCached(async () => {
+    const response = await spotify.getCategories({ limit: 50 })
+      .catch(handleAccessTokenExpired)
+      .catch(handleAssetMissing);
   
-    return categories.items;
+    return response?.categories?.items || [];
   }, 'categories');
+  const playlists = await Promise.all(
+    categories.map(category => loadCategoryPlaylists(category.id))
+  );
+  return categories.filter((c, i) => playlists[i]?.length);
 }
-export async function loadPlaylists(categoryID) {
+export async function loadCategoryPlaylists(categoryID) {
   return loadCached(async () => {
-    const { playlists } = await spotify.getCategoryPlaylists(categoryID, { limit: 50 })
-      .catch(handleAccessTokenExpired);
+    const response = await spotify.getCategoryPlaylists(categoryID, { limit: 50 })
+      .catch(handleAccessTokenExpired)
+      .catch(handleAssetMissing);
     
-    return playlists.items;
+    return response?.playlists?.items || [];
   }, `playlists/${categoryID}`);
 }
 export async function loadCategory(categoryID) {
@@ -82,7 +94,7 @@ export async function loadPlaylist(playlistID) {
     return playlist;
   }, `playlist/${playlistID}`);
 }
-export async function loadTracks(playlistID) {
+export async function loadPlaylistTracks(playlistID) {
   const tracks = await loadCached(async () => {
     const { items } = await spotify.getPlaylistTracks(playlistID)
       .catch(handleAccessTokenExpired);

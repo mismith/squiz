@@ -19,7 +19,7 @@ import Players from '../components/Players';
 import Loader from '../components/Loader';
 import DialogConfirm from '../components/DialogConfirm';
 import { firestore } from '../helpers/firebase';
-import { loadCategories, loadPlaylists } from '../helpers/spotify';
+import { loadCategories, loadCategoryPlaylists } from '../helpers/spotify';
 import { ROUNDS_LIMIT, endGame } from '../helpers/game';
 
 const styles = {
@@ -137,7 +137,7 @@ export default ({ gameID, categoryID, playlistID }) => {
   const {
     result: playlists,
     loading: playlistsLoading,
-  } = useAsync(() => categoryID && loadPlaylists(categoryID), [categoryID]);
+  } = useAsync(() => categoryID && loadCategoryPlaylists(categoryID), [categoryID]);
   const loading = gameLoading || categoriesLoading || playlistsLoading;
 
   const playersRef = gameRef.collection('players').orderBy('score', 'desc');

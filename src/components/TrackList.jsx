@@ -18,7 +18,7 @@ import { FieldValue } from '../helpers/firebase';
 import {
   loadCategory,
   loadPlaylist,
-  loadTracks,
+  loadPlaylistTracks,
   loadDecoys,
 } from '../helpers/spotify';
 import {
@@ -83,7 +83,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
   const {
     result: tracks,
     loading: tracksLoading,
-  } = useAsync(() => loadTracks(playlistID), [playlistID]);
+  } = useAsync(() => loadPlaylistTracks(playlistID), [playlistID]);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [usedTrackIDs, setUsedTrackIDs] = useLocalStorage('usedTracks', '');
 
