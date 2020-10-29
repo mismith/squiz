@@ -33,42 +33,7 @@ import {
   useLatestDocument,
   endGame as endGameHelper,
 } from '../helpers/game';
-
-let audio;
-let timeout;
-const stop = () => {
-  if (audio) {
-    audio.pause();
-    audio = null;
-  }
-  if (timeout) {
-    window.clearTimeout(timeout);
-    timeout = null;
-  }
-};
-const loadAudio = src => new Promise((resolve, reject) => {
-  if (audio) {
-    audio.pause();
-    audio = null;
-  }
-
-  const player = new Audio(src);
-  audio = player;
-  player.addEventListener('loadeddata', () => {
-    if (audio === player) {
-      resolve(player);
-    }
-  });
-  player.addEventListener('error', (err) => {
-    if (audio === player) {
-      reject(err);
-    }
-  });
-});
-const play = async (src) => {
-  await loadAudio(src);
-  if (audio) audio.play();
-};
+import * as audio from '../helpers/audio';
 
 const styles = {
   container: {
@@ -137,27 +102,26 @@ export default ({ categoryID, playlistID, gameRef }) => {
 
   const loading = categoryLoading || playlistLoading || tracksLoading
     || gameLoading || roundsLoading || roundRefLoading || roundLoading || trackLoading;
-  const isInProgress = game && game.timestamp && !game.completed
-    && round && round.timestamp && !round.completed;
-  const isPlaylistThisRounds = round && round.playlistID === playlistID;
+  const isInProgress = game?.timestamp && !game.completed && round?.timestamp && !round.completed;
+  const isPlaylistThisRounds = round?.playlistID === playlistID;
   const isPlaylistInProgress = isPlaylistThisRounds && !round.completed;
   const isPlaylistLastCompleted = isPlaylistThisRounds && round.completed;
   const isPlaylistAlreadyPlayed = rounds && round && rounds.some(r => r.playlistID === playlistID);
 
   async function endGame() {
-    stop();
+    audio.stop();
 
     await endGameHelper(gameRef);
   }
   async function endRound() {
-    stop();
+    audio.stop();
 
     await roundRef.set({
       completed: FieldValue.serverTimestamp(),
     }, { merge: true });
   }
   async function endTrack() {
-    stop();
+    audio.stop();
 
     await tracksRef.doc(track.id).set({
       completed: FieldValue.serverTimestamp(),
@@ -198,7 +162,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
     await trackRoundRef.collection('tracks').doc(pickedTrack.id).set(newTrack);
   };
   const next = async () => {
-    stop();
+    audio.stop();
 
     if (pickedTracks && pickedTracks.length >= TRACKS_LIMIT) {
       if (round && !round.completed) {
@@ -260,13 +224,12 @@ export default ({ categoryID, playlistID, gameRef }) => {
   useAsync(async () => {
     // make sure the audio loads (skip track if not)
     try {
-      if (hasInteracted && track && track.src && !track.completed) {
-        await loadAudio(track.src);
-        audio.play();
+      if (hasInteracted && track?.src && !track.completed) {
+        await audio.play(track.src);
 
         // play a clip of the track (e.g. stop playing it early, before it actually ends)
         await new Promise((resolve) => {
-          timeout = window.setTimeout(resolve, CHOICES_TIMEOUT);
+          audio.setTimeout(resolve, CHOICES_TIMEOUT);
         });
         await endTrack();
       }
@@ -279,7 +242,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
     }
   }, [hasInteracted, track?.src]);
   useAsync(async () => {
-    if (hasInteracted && track && track.completed) {
+    if (hasInteracted && track?.completed) {
       // update all player scores
       await Promise.all(Object.entries(track.players || {}).map(async ([playerID, response]) => {
         const isCorrect = track.id === response.choiceID;
@@ -297,7 +260,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
 
       // show results
       await new Promise((resolve) => {
-        timeout = window.setTimeout(resolve, RESULTS_TIMEOUT);
+        audio.setTimeout(resolve, RESULTS_TIMEOUT);
       });
       await next();
     }
@@ -344,8 +307,8 @@ export default ({ categoryID, playlistID, gameRef }) => {
                   <TileButton
                     image={track.album.images[0].url}
                     size={64}
-                    onMouseEnter={() => play(track.preview_url)}
-                    onMouseLeave={() => stop()}
+                    onMouseEnter={() => audio.play(track.preview_url)}
+                    onMouseLeave={() => audio.stop()}
                   />
                 </Tooltip>
               )}
@@ -363,11 +326,11 @@ export default ({ categoryID, playlistID, gameRef }) => {
       </div>
     );
   }, [
-    !loading && category && category.id,
-    !loading && playlist && playlist.id,
-    !loading && round && round.id,
-    !loading && track && track.id,
-    !loading && track && track.completed,
+    !loading && category?.id,
+    !loading && playlist?.id,
+    !loading && round?.id,
+    !loading && track?.id,
+    !loading && track?.completed,
     !loading && hasInteracted,
     !loading && isInProgress,
     !loading && pickedTracks,
