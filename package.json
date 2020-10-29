@@ -26,8 +26,7 @@
     "weighted-random": "^0.1.0"
   },
   "devDependencies": {
-    "react-scripts": "^3.4.3",
-    "yarn": "^1.22.0"
+    "react-scripts": "^3.4.3"
   },
   "engines": {
     "node": "12"
