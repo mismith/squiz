@@ -16,6 +16,27 @@ import SpotifyLoginButton from '../components/SpotifyLoginButton';
 import { firestore, FieldValue } from '../helpers/firebase';
 import { login, retrieveAccessToken } from '../helpers/spotify';
 
+function useRandomName() {
+  const [remainingRandomNames, setRemainingRandomNames] = useState([]);
+  useAsync(async () => {
+    if (!remainingRandomNames.length) {
+      const url = 'http://names.drycodes.com/25?nameOptions=funnyWords';
+      const names = await (await fetch(`https://cors-anywhere.herokuapp.com/${url}`)).json();
+      setRemainingRandomNames(names);
+    }
+  }, [remainingRandomNames.length]);
+
+  const getRandomName = () => {
+    const nextRandomName = remainingRandomNames.splice(0, 1);
+    setRemainingRandomNames(remainingRandomNames);
+    return nextRandomName;
+  };
+
+  getRandomName.remaining = remainingRandomNames;
+
+  return getRandomName;
+}
+
 export default () => {
   const { register, handleSubmit, errors } = useForm();
   const [joinGameID, setJoinGameID] = useLocalStorage('joinGameID');
@@ -112,19 +133,7 @@ export default () => {
     }
   }, [history, hostGame]);
 
-  const [remainingRandomNames, setRemainingRandomNames] = useState([]);
-  useAsync(async () => {
-    if (!remainingRandomNames.length) {
-      const url = 'http://names.drycodes.com/25?nameOptions=funnyWords';
-      const names = await (await fetch(`https://cors-anywhere.herokuapp.com/${url}`)).json();
-      setRemainingRandomNames(names);
-    }
-  }, [remainingRandomNames.length]);
-  const handleGeneratePlayerName = async () => {
-    const nextRandomName = remainingRandomNames.splice(0, 1);
-    setRemainingRandomNames(remainingRandomNames);
-    setPlayerName(nextRandomName);
-  };
+  const getRandomName = useRandomName();
 
   return (
     <form onSubmit={handleSubmit(joinGame)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'auto' }}>
@@ -185,9 +194,9 @@ export default () => {
                     <Clear />
                   </IconButton>
                 </InputAdornment>
-              ) : (Boolean(remainingRandomNames.length) && (
+              ) : (Boolean(getRandomName?.remaining?.length) && (
                 <InputAdornment position="end">
-                  <IconButton edge="end" onClick={handleGeneratePlayerName}>
+                  <IconButton edge="end" onClick={() => setPlayerName(getRandomName())}>
                     <Shuffle style={{ transform: 'rotate(180deg)' }} />
                   </IconButton>
                 </InputAdornment>
