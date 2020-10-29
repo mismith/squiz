@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useHistory } from 'react-router-dom';
 import useForm from 'react-hook-form'
 import useLocalStorage from 'react-use-localstorage';
 import { useAsync } from 'react-async-hook';
@@ -15,25 +16,27 @@ import SpotifyLoginButton from '../components/SpotifyLoginButton';
 import { firestore, FieldValue } from '../helpers/firebase';
 import { login, retrieveAccessToken } from '../helpers/spotify';
 
-export default ({ history }) => {
+export default () => {
   const { register, handleSubmit, errors } = useForm();
   const [joinGameID, setJoinGameID] = useLocalStorage('joinGameID');
   const [playerName, setPlayerName] = useLocalStorage('playerName');
   const [hostGameID, setHostGameID] = useLocalStorage('hostGameID');
   const [gameIDError, setGameIDError] = useState('');
   const [playerNameError, setPlayerNameError] = useState('');
-  const [loading, setLoading] = useState({ join: false, host: false });
+  const [joinGameLoading, setJoinGameLoading] = useState(false);
+  const [hostGameLoading, setHostGameLoading] = useState(false);
 
   const gamesRef = firestore.collection('games');
 
+  const history = useHistory();
   async function joinGame({ joinGameID }) {
-    if (loading.join) return;
-    setLoading({ join: true });
+    if (joinGameLoading) return;
+    setJoinGameLoading(true);
 
     const gameRef = gamesRef.doc(joinGameID);
     const gameDoc = await gameRef.get();
     if (!gameDoc.exists) {
-      setLoading({ join: false });
+      setJoinGameLoading(false);
       setGameIDError('Not found');
       return;
     }
@@ -41,7 +44,7 @@ export default ({ history }) => {
     const playersRef = gameRef.collection('players');
     const playerNames = (await playersRef.get()).docs.map(d => (d.data() || {}).name);
     if (playerName && playerNames.includes(playerName)) {
-      setLoading({ join: false });
+      setJoinGameLoading(false);
       setPlayerNameError('A player is already using this name');
       return;
     }
@@ -49,16 +52,16 @@ export default ({ history }) => {
       name: playerName,
       timestamp: FieldValue.serverTimestamp(),
     });
-    setLoading({ join: false });
+    setJoinGameLoading(false);
     history.push(`/games/${joinGameID}/players/${newPlayerID}`);
   }
   const hostGame = useCallback(async () => {
-    if (loading.host) return;
-    setLoading({ host: true });
+    if (hostGameLoading) return;
+    setHostGameLoading(false);
 
     const { accessToken } = retrieveAccessToken();
     if (!accessToken) {
-      setLoading({ host: false });
+      setHostGameLoading(false);
       login('hostGame');
       return;
     }
@@ -93,9 +96,9 @@ export default ({ history }) => {
       timestamp: FieldValue.serverTimestamp(),
     });
     setHostGameID(newGameID);
-    setLoading({ host: false });
+    setHostGameLoading(false);
     history.push(`/games/${newGameID}`);
-  }, [gamesRef, history, hostGameID, loading.host, setHostGameID]);
+  }, [gamesRef, history, hostGameID, hostGameLoading, setHostGameID]);
 
   useEffect(() => {
     const { state } = retrieveAccessToken();
@@ -193,7 +196,7 @@ export default ({ history }) => {
           />
         </Grid>
         <Grid item xs={12}>
-          <SpotifyButton type="submit" fullWidth loading={loading.join}>
+          <SpotifyButton type="submit" fullWidth loading={joinGameLoading}>
             Join Game
           </SpotifyButton>
         </Grid>
@@ -204,7 +207,7 @@ export default ({ history }) => {
           <SpotifyLoginButton
             variant="outlined"
             fullWidth
-            loading={loading.host}
+            loading={hostGameLoading}
             onClick={hostGame}
           >
             Host Game with Spotify
