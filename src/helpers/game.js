@@ -76,10 +76,10 @@ export const trimTrack = (track) => ({
 });
 
 export function getTrackPointsForPlayer(track, playerID) {
-  const player = track && track.players && track.players[playerID];
+  const player = track?.players?.[playerID];
   if (player) {
-    const playerSwipedAt = player.timestamp ? player.timestamp.toDate().getTime() : 0;
-    const trackAcceptsSwipesAt = track.timestamp ? track.timestamp.toDate().getTime() : 0;
+    const playerSwipedAt = player.timestamp?.toDate().getTime() || 0;
+    const trackAcceptsSwipesAt = track.timestamp?.toDate().getTime() || 0;
     // give players a 'head start' in order to process the visuals/sounds
     const reactionTime = playerSwipedAt - trackAcceptsSwipesAt - CHOICES_STARTUP; 
     const percent = Math.round(reactionTime / CHOICES_TIMEOUT * 100);

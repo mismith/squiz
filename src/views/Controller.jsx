@@ -4,21 +4,12 @@ import { useSwipeable } from 'react-swipeable';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import KeyboardArrowUp from '@material-ui/icons/KeyboardArrowUp';
-import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
-import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
-import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown';
 
 import GameCode from '../components/GameCode';
 import { firestore, FieldValue } from '../helpers/firebase';
 import { useLatestDocument, useTrack } from '../helpers/game';
+import { directions } from '../helpers/directions';
 
-const directions = [
-  { dir: 'Up', icon: KeyboardArrowUp },
-  { dir: 'Left', icon: KeyboardArrowLeft },
-  { dir: 'Right', icon: KeyboardArrowRight },
-  { dir: 'Down', icon: KeyboardArrowDown },
-];
 
 function usePlayerSwipes(gameRef, playerID) {
   const { value: game } = useDocumentData(gameRef, null, 'id');
@@ -135,7 +126,7 @@ const styles = {
   },
 };
 
-export default ({ gameID, playerID }) => {
+export default function Controller({ gameID, playerID }) {
   const gameRef = firestore.collection('games').doc(gameID);
   const playerRef = gameRef.collection('players').doc(playerID);
 
@@ -153,15 +144,21 @@ export default ({ gameID, playerID }) => {
 
       <Typography component="div" color="textSecondary" style={styles.directions}>
         {directions.map(({ dir, icon: DirIcon }) =>
-          <div key={dir} style={{
-            ...styles.direction,
-            margin: (dir === 'Up' || dir === 'Down') && 'calc(25% - 96px) 10px',
-          }}>
-            <DirIcon color={swipe === dir ? 'primary' : 'inherit'} style={{ fontSize: 'inherit' }} />
+          <div
+            key={dir}
+            style={{
+              ...styles.direction,
+              margin: (dir === 'Up' || dir === 'Down') && 'calc(25% - 96px) 10px',
+            }}
+          >
+            <DirIcon
+              color={swipe === dir ? 'primary' : 'inherit'}
+              style={{ fontSize: 'inherit' }}
+            />
           </div>
         )}
         <label style={styles.label}>Swipe</label>
       </Typography>
     </div>
   );
-};
+}

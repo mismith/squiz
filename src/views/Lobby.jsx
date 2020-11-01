@@ -13,8 +13,10 @@ import Shuffle from '@material-ui/icons/Shuffle';
 
 import SpotifyButton from '../components/SpotifyButton';
 import SpotifyLoginButton from '../components/SpotifyLoginButton';
+import About from '../components/About';
 import { firestore, FieldValue } from '../helpers/firebase';
 import { login, retrieveAccessToken } from '../helpers/spotify';
+import { makeStyles } from '@material-ui/core';
 
 function useRandomName() {
   const [remainingRandomNames, setRemainingRandomNames] = useState([]);
@@ -37,7 +39,21 @@ function useRandomName() {
   return getRandomName;
 }
 
-export default () => {
+const useStyles = makeStyles(theme => ({
+  root: {
+    flexShrink: 0,
+    flexWrap: 'nowrap',
+    padding: theme.spacing(4),
+  },
+  about: {
+    borderTop: `solid 1px ${theme.palette.text.disabled}`,
+    padding: theme.spacing(6, 0),
+  },
+}));
+
+export default function Lobby() {
+  const classes = useStyles();
+
   const { register, handleSubmit, errors } = useForm();
   const [joinGameID, setJoinGameID] = useLocalStorage('joinGameID');
   const [playerName, setPlayerName] = useLocalStorage('playerName');
@@ -136,9 +152,17 @@ export default () => {
   const getRandomName = useRandomName();
 
   return (
-    <form onSubmit={handleSubmit(joinGame)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'auto' }}>
-      <Grid container spacing={2} style={{ maxWidth: 400, padding: 16, margin: 0, marginBottom: 48 }}>
-        <Grid item xs={12}>
+    <Grid container direction="column" alignItems="center" justify="center" className={classes.root}>
+      <Grid
+        component="form"
+        item
+        container
+        direction="column"
+        spacing={2}
+        style={{ maxWidth: 400, marginBottom: 48 }}
+        onSubmit={handleSubmit(joinGame)}
+      >
+        <Grid item>
           <Typography variant="h2" component="h1" style={{ textAlign: 'center', marginBottom: 16 }}>
             Squiz
           </Typography>
@@ -146,7 +170,7 @@ export default () => {
             Beat your friends to name that tune!
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item>
           <TextField
             label="Game Code"
             variant="outlined"
@@ -173,9 +197,9 @@ export default () => {
             }}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid item>
           <TextField
-            label="Player Name"
+            label="Your Name"
             variant="outlined"
             fullWidth
             inputRef={register({
@@ -204,15 +228,15 @@ export default () => {
             }}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid item>
           <SpotifyButton type="submit" fullWidth loading={joinGameLoading}>
             Join Game
           </SpotifyButton>
         </Grid>
-        <Grid item container xs={12} justify="center" style={{ padding: 16, opacity: 0.5 }}>
+        <Grid item container justify="center" style={{ padding: 16, opacity: 0.5 }}>
           <Typography>&mdash; or &mdash;</Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item>
           <SpotifyLoginButton
             variant="outlined"
             fullWidth
@@ -223,6 +247,9 @@ export default () => {
           </SpotifyLoginButton>
         </Grid>
       </Grid>
-    </form>
+      <Grid item container direction="column" alignItems="center" className={classes.about}>
+        <About />
+      </Grid>
+    </Grid>
   );
-};
+}
