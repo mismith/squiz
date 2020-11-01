@@ -22,32 +22,34 @@ function usePlayerSwipes(gameRef, playerID) {
     // reset local swipe marker for each new track
     setSwipe(null);
   }, [track?.id]);
+  async function onSwiped({ dir }) {
+    if (!game?.paused && track?.id && !track?.completed && dir !== swipe) {
+      // send selection to server
+      const choiceIndex = directions.findIndex(direction => direction.dir === dir);
+      const choice = track.choices[choiceIndex];
+      tracksRef.doc(track.id).set({
+        players: {
+          [playerID]: {
+            choiceID: choice?.id,
+            timestamp: FieldValue.serverTimestamp(),
+          },
+        },
+      }, { merge: true });
+
+      // show selection locally
+      setSwipe(dir);
+    }
+  }
   const handlers = useSwipeable({
     // send swipes to server for processing
-    async onSwiped({ dir }) {
-      if (!game?.paused && !track?.completed && dir !== swipe) {
-        // send selection to server
-        const choiceIndex = directions.findIndex(direction => direction.dir === dir);
-        const choice = track.choices[choiceIndex];
-        tracksRef.doc(track.id).set({
-          players: {
-            [playerID]: {
-              choiceID: choice && choice.id,
-              timestamp: FieldValue.serverTimestamp(),
-            },
-          },
-        }, { merge: true });
-
-        // show selection locally
-        setSwipe(dir);
-      }
-    },
+    onSwiped,
     preventDefaultTouchmoveEvent: true,
     trackMouse: true, // @DEBUG
   });
 
   return {
     swipe,
+    setSwipe: dir => onSwiped({ dir }),
     handlers,
   };
 }
