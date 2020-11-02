@@ -6,7 +6,6 @@ import shuffleArray from 'shuffle-array';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
 import Tooltip from '@material-ui/core/Tooltip';
-import MobileStepper from '@material-ui/core/MobileStepper';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 
 import TileGrid from './TileGrid';
@@ -347,16 +346,6 @@ export default ({ categoryID, playlistID, gameRef }) => {
   return (
     <>
       {body}
-
-      {isInProgress &&
-        <MobileStepper
-          variant="dots"
-          position="static"
-          steps={TRACKS_LIMIT}
-          activeStep={pickedTracks.length - 1}
-          style={styles.stepper}
-        />
-      }
     </>
   );
 };

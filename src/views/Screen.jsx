@@ -7,7 +7,6 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
-import MobileStepper from '@material-ui/core/MobileStepper';
 import CloseIcon from '@material-ui/icons/Close';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 
@@ -17,10 +16,11 @@ import PlaylistList from '../components/PlaylistList';
 import TrackList from '../components/TrackList';
 import Players from '../components/Players';
 import Loader from '../components/Loader';
+import ProgressIndicator from '../components/ProgressIndicator';
 import DialogConfirm from '../components/DialogConfirm';
 import { firestore } from '../helpers/firebase';
 import { loadCategories, loadCategoryPlaylists } from '../helpers/spotify';
-import { ROUNDS_LIMIT, endGame } from '../helpers/game';
+import { endGame } from '../helpers/game';
 
 const styles = {
   container: {
@@ -47,7 +47,6 @@ const styles = {
 };
 
 export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
-  const { value: rounds } = useCollectionData(gameRef.collection('rounds'));
 
   let to = '';
   if (gameID && categoryID) {
@@ -93,32 +92,7 @@ export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
 
         <GameCode gameID={gameID} />
 
-        <Grid item container xs={4}>
-          {!!rounds?.length &&
-            <>
-              <Typography
-                variant="overline"
-                component="small"
-                color={game?.completed ? 'secondary' : 'inherit'}
-                style={styles.rounds.label}
-              >
-                {game?.completed
-                  ? 'Game Over'
-                  : `Round ${rounds.length} of ${ROUNDS_LIMIT}`
-                }
-              </Typography>
-              {!game?.completed &&
-                <MobileStepper
-                  variant="dots"
-                  position="static"
-                  steps={ROUNDS_LIMIT}
-                  activeStep={rounds.length - 1}
-                  style={styles.rounds.stepper}
-                />
-              }
-            </>
-          }
-        </Grid>
+        <Grid item container xs={4} />
       </Toolbar>
     </AppBar>
   );
@@ -190,7 +164,9 @@ export default ({ gameID, categoryID, playlistID }) => {
           ))
       }
   
-      <AppBar color="default" position="static" style={{ padding: '16px 0' }}>
+      <AppBar color="default" position="static" style={{ paddingBottom: 16 }}>
+        <ProgressIndicator gameRef={gameRef} style={{ marginBottom: 16 }} />
+
         <Toolbar>
           <Players gameRef={gameRef} />
         </Toolbar>
