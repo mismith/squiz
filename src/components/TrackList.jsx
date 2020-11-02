@@ -142,7 +142,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
 
     // start a new round, if one isn't already started, or if existing one is already completed
     let trackRoundRef = roundRef;
-    if (!round || (round && round.completed)) {
+    if (!round || round?.completed) {
       trackRoundRef = await roundsRef.add({
         playlistID,
         timestamp: FieldValue.serverTimestamp(),
@@ -164,14 +164,14 @@ export default ({ categoryID, playlistID, gameRef }) => {
   const next = async () => {
     audio.stop();
 
-    if (pickedTracks && pickedTracks.length >= TRACKS_LIMIT) {
-      if (round && !round.completed) {
+    if (pickedTracks?.length >= TRACKS_LIMIT) {
+      if (!round?.completed) {
         // @TODO: alert if track run out early
         await endRound();
 
-        if (rounds && rounds.length >= ROUNDS_LIMIT) {
+        if (rounds?.length >= ROUNDS_LIMIT) {
           // @TODO: make this non-instant
-          if (game && !game.completed) {
+          if (!game?.completed) {
             await endGame();
           }
         }
@@ -204,7 +204,8 @@ export default ({ categoryID, playlistID, gameRef }) => {
       // playing a track as usual
       await next();
     }
-
+  };
+  const handleClick = () => {
     // ensure audio doesn't get blocked because of not being user-interction-driven
     // NB: this goes last since the state change triggers UI updates
     if (!hasInteracted) {
@@ -224,7 +225,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
   useAsync(async () => {
     // make sure the audio loads (skip track if not)
     try {
-      if (hasInteracted && track?.src && !track.completed) {
+      if (hasInteracted && track?.src && !track.completed && !game?.paused) {
         await audio.play(track.src);
 
         // play a clip of the track (e.g. stop playing it early, before it actually ends)
@@ -240,9 +241,9 @@ export default ({ categoryID, playlistID, gameRef }) => {
       // @TODO: replace the broken track instead of just missing it
       // e.g. remove broken track -> nextTrack()
     }
-  }, [hasInteracted, track?.src]);
+  }, [hasInteracted, track?.src, game?.paused]);
   useAsync(async () => {
-    if (hasInteracted && track?.completed) {
+    if (hasInteracted && track?.completed && !game?.paused) {
       // update all player scores
       await Promise.all(Object.entries(track.players || {}).map(async ([playerID, response]) => {
         const isCorrect = track.id === response.choiceID;
@@ -264,10 +265,10 @@ export default ({ categoryID, playlistID, gameRef }) => {
       });
       await next();
     }
-  }, [hasInteracted, track?.completed]);
+  }, [hasInteracted, track?.completed, game?.paused]);
 
   const body = useMemo(() => {
-    if (track && hasInteracted && isInProgress) {
+    if (track && hasInteracted && isInProgress && !game?.paused) {
       return (
         <Choices
           choices={track.choices}
@@ -278,7 +279,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
     }
 
     return (
-      <div style={styles.container}>
+      <div style={styles.container} onClick={handleClick}>
         <TileGrid style={styles.bg}>
           {tracks && tracks.map(choice =>
             <TileButton
@@ -307,8 +308,8 @@ export default ({ categoryID, playlistID, gameRef }) => {
                   <TileButton
                     image={track.album.images[0].url}
                     size={64}
-                    onMouseEnter={() => audio.play(track.preview_url)}
-                    onMouseLeave={() => audio.stop()}
+                    onMouseEnter={() => hasInteracted && audio.play(track.preview_url)}
+                    onMouseLeave={() => hasInteracted && audio.stop()}
                   />
                 </Tooltip>
               )}
@@ -334,6 +335,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
     !loading && hasInteracted,
     !loading && isInProgress,
     !loading && pickedTracks,
+    !loading && game?.paused,
   ]);
 
   if (loading) {
