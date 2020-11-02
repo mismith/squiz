@@ -26,7 +26,7 @@ export default ({ categories = [] }) => {
               Random
             </Button>
           </Toolbar>
-          <TileGrid style={{ flex: 'auto' }}>
+          <TileGrid style={{ flex: 'auto', marginBottom: 16 }}>
             {categories.map(category =>
               <TileButton
                 key={category.id}

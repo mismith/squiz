@@ -26,7 +26,7 @@ export default ({ playlists = [] }) => {
               Random
             </Button>
           </Toolbar>
-          <TileGrid style={{ flex: 'auto' }}>
+          <TileGrid style={{ flex: 'auto', marginBottom: 16 }}>
             {playlists.map(playlist =>
               <TileButton
                 key={playlist.id}
