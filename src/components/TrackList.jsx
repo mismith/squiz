@@ -212,6 +212,10 @@ export default ({ categoryID, playlistID, gameRef }) => {
     }
   };
 
+  // stop audio when leaving page
+  useEffect(() => {
+    return () => audio.stop();
+  }, []);
   // store screen refresh/reload in state // @TODO: move this to page beforeunload
   useEffect(() => {
     if (!hasInteracted && !game?.paused) {
