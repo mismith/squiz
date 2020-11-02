@@ -134,7 +134,14 @@ export default function Controller({ gameID, playerID }) {
 
   useZoomPrevention();
   usePlayerConnectivityStatus(playerRef);
-  const { swipe, handlers } = usePlayerSwipes(gameRef, playerID);
+  const { swipe, setSwipe, handlers } = usePlayerSwipes(gameRef, playerID);
+
+  const roundsRef = gameRef.collection('rounds');
+  const { value: { ref: roundRef } = {} } = useLatestDocument(roundsRef);
+  const { value: track } = useLatestDocument(roundRef?.collection('tracks'));
+  useEffect(() => {
+    setSwipe(null);
+  }, [track]);
 
   return (
     <div style={styles.controller} {...handlers}>
