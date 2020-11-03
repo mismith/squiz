@@ -6,10 +6,10 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
 import GameCode from '../components/GameCode';
+import useConnectivityStatus from '../hooks/useConnectivityStatus';
 import { firestore, FieldValue } from '../helpers/firebase';
 import { useLatestDocument, useTrack } from '../helpers/game';
 import { directions } from '../helpers/directions';
-
 
 function usePlayerSwipes(gameRef, playerID) {
   const { value: game } = useDocumentData(gameRef, null, 'id');
@@ -23,21 +23,23 @@ function usePlayerSwipes(gameRef, playerID) {
     setSwipe(null);
   }, [track?.id]);
   async function onSwiped({ dir }) {
-    if (!game?.paused && track?.id && !track?.completed && dir !== swipe) {
+    if (!game?.paused && !game?.inactive && track?.id && !track?.completed && dir !== swipe) {
       // send selection to server
       const choiceIndex = directions.findIndex(direction => direction.dir === dir);
       const choice = track.choices[choiceIndex];
-      tracksRef.doc(track.id).set({
-        players: {
-          [playerID]: {
-            choiceID: choice?.id,
-            timestamp: FieldValue.serverTimestamp(),
+      if (choice?.id) {
+        tracksRef.doc(track.id).set({
+          players: {
+            [playerID]: {
+              choiceID: choice.id,
+              timestamp: FieldValue.serverTimestamp(),
+            },
           },
-        },
-      }, { merge: true });
+        }, { merge: true });
 
-      // show selection locally
-      setSwipe(dir);
+        // show selection locally
+        setSwipe(dir);
+      }
     }
   }
   const handlers = useSwipeable({
@@ -64,31 +66,6 @@ function useZoomPrevention() {
       document.removeEventListener('gesturestart', handleGestureStart);
     };
   }, []);
-}
-
-function usePlayerConnectivityStatus(playerRef) {
-  useEffect(() => {
-    const setInactive = to => playerRef.set({
-      inactive: to,
-    }, { merge: true });
-
-    // monitor tab changes
-    const handleVisibilityChange = () => {
-      setInactive(document.hidden ? FieldValue.serverTimestamp() : FieldValue.delete());
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // monitor tab closes
-    const handleBeforeUnload = () => {
-      setInactive(FieldValue.serverTimestamp());
-    };
-    document.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [playerRef]);
 }
 
 const styles = {
@@ -133,7 +110,7 @@ export default function Controller({ gameID, playerID }) {
   const playerRef = gameRef.collection('players').doc(playerID);
 
   useZoomPrevention();
-  usePlayerConnectivityStatus(playerRef);
+  useConnectivityStatus(playerRef);
   const { swipe, setSwipe, handlers } = usePlayerSwipes(gameRef, playerID);
 
   const roundsRef = gameRef.collection('rounds');

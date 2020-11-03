@@ -18,6 +18,7 @@ import Players from '../components/Players';
 import Loader from '../components/Loader';
 import ProgressIndicator from '../components/ProgressIndicator';
 import DialogConfirm from '../components/DialogConfirm';
+import useConnectivityStatus from '../hooks/useConnectivityStatus';
 import { firestore } from '../helpers/firebase';
 import { loadCategories, loadCategoryPlaylists } from '../helpers/spotify';
 import { endGame } from '../helpers/game';
@@ -47,7 +48,6 @@ const styles = {
 };
 
 export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
-
   let to = '';
   if (gameID && categoryID) {
     to += `/games/${gameID}`;
@@ -98,7 +98,7 @@ export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
   );
 }
 
-export default ({ gameID, categoryID, playlistID }) => {
+export default function Screen({ gameID, categoryID, playlistID }) {
   const gameRef = firestore.collection('games').doc(gameID);
   const {
     value: game,
@@ -116,6 +116,8 @@ export default ({ gameID, categoryID, playlistID }) => {
 
   const playersRef = gameRef.collection('players').orderBy('score', 'desc');
   const { value: [winner] = [] } = useCollectionData(playersRef, null, 'id');
+
+  useConnectivityStatus(gameRef);
 
   return (
     <div style={styles.container}>
@@ -173,4 +175,4 @@ export default ({ gameID, categoryID, playlistID }) => {
       </AppBar>
     </div>
   );
-};
+}

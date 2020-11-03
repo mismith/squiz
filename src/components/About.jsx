@@ -9,8 +9,7 @@ import SpotifyButton from './SpotifyButton';
 import { directions } from '../helpers/directions';
 
 const useStyles = makeStyles(theme => ({
-  root: {
-  },
+  root: {},
   figure: {
     width: '100%',
     maxWidth: 600,

@@ -25,7 +25,7 @@ const styles = {
   },
 };
 
-export default ({ gameRef }) => {
+export default function Players({ gameRef }) {
   const { value: game, loading: gameLoading } = useDocumentData(gameRef);
   const roundsRef = gameRef.collection('rounds');
   const { value: { ref: roundRef } = {}, loading: roundRefLoading } = useLatestDocument(roundsRef);
@@ -40,13 +40,13 @@ export default ({ gameRef }) => {
 
   const loading = gameLoading || roundRefLoading || roundLoading || trackLoading
     || playersLoading;
-  const gameActive = !loading && game && !game.paused;
-  const trackCompleted = track && track.completed;
-  const roundInProgress = round && !round.completed;
+  const gameActive = !loading && !game?.paused;
+  const trackCompleted = track?.completed;
+  const roundInProgress = !round?.completed;
 
   const playersWithResponses = players.map((player) => {
-    const response = track && track.players && track.players[player.id];
-    const isCorrect = response && response.choiceID === track.id;
+    const response = track?.players?.[player.id];
+    const isCorrect = response?.choiceID === track?.id;
     const showCorrectColor = isCorrect ? 'primary' : 'secondary';
     const points = getTrackPointsForPlayer(track, player.id); // @TODO: compute difference from local state instead of recalculating
 
@@ -119,4 +119,4 @@ export default ({ gameRef }) => {
       }
     </>
   );
-};
+}
