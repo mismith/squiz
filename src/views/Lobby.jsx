@@ -57,6 +57,7 @@ export default function Lobby() {
   const { register, handleSubmit, errors } = useForm();
   const [joinGameID, setJoinGameID] = useLocalStorage('joinGameID');
   const [playerName, setPlayerName] = useLocalStorage('playerName');
+  const [storedPlayerID, setPlayerID] = useLocalStorage('playerID');
   const [hostGameID, setHostGameID] = useLocalStorage('hostGameID');
   const [gameIDError, setGameIDError] = useState('');
   const [playerNameError, setPlayerNameError] = useState('');
@@ -79,18 +80,38 @@ export default function Lobby() {
     }
 
     const playersRef = gameRef.collection('players');
-    const playerNames = (await playersRef.get()).docs.map(d => (d.data() || {}).name);
-    if (playerName && playerNames.includes(playerName)) {
+    const playerDocs = (await playersRef.get()).docs;
+    const playerUsingName = playerDocs.find(d => d.data()?.name === playerName);
+    const handleDuplicateName = () => {
       setJoinGameLoading(false);
       setPlayerNameError('A player is already using this name');
-      return;
-    }
-    const { id: newPlayerID } = await playersRef.add({
+    };
+    const playerData = {
       name: playerName,
       timestamp: FieldValue.serverTimestamp(),
-    });
+    };
+    let playerID;
+    if (storedPlayerID && playerDocs.find(p => p.id === storedPlayerID)) {
+      if (playerUsingName && playerUsingName.id !== storedPlayerID) {
+        return handleDuplicateName();
+      }
+
+      await playersRef.doc(storedPlayerID).set(playerData, { merge: true });
+
+      playerID = storedPlayerID;
+    } else {
+      if (playerUsingName) {
+        return handleDuplicateName();
+      }
+
+      const { id: newPlayerID } = await playersRef.add(playerData);
+      setPlayerID(newPlayerID);
+
+      playerID = newPlayerID;
+    }
+
     setJoinGameLoading(false);
-    history.push(`/games/${joinGameID}/players/${newPlayerID}`);
+    history.push(`/games/${joinGameID}/players/${playerID}`);
   }
   const hostGame = useCallback(async () => {
     if (hostGameLoading) return;
