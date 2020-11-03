@@ -87,6 +87,8 @@ export default ({ categoryID, playlistID, gameRef }) => {
   const [usedTrackIDs, setUsedTrackIDs] = useLocalStorage('usedTracks', '');
 
   const { value: game, loading: gameLoading } = useDocumentData(gameRef, null, 'id');
+  const playersRef = gameRef.collection('players');
+  const { value: players, loading: playersLoading } = useCollectionData(playersRef);
   const roundsRef = gameRef.collection('rounds');
   const { value: rounds, loading: roundsLoading } = useCollectionData(roundsRef);
   const { value: { ref: roundRef } = {}, loading: roundRefLoading } = useLatestDocument(roundsRef);
@@ -99,7 +101,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
     loading: trackLoading,
   } = useTrack(roundRef, tracks, usedTrackIDs.split(','));
 
-  const loading = categoryLoading || playlistLoading || tracksLoading
+  const loading = categoryLoading || playlistLoading || tracksLoading || playersLoading
     || gameLoading || roundsLoading || roundRefLoading || roundLoading || trackLoading;
   const isInProgress = game?.timestamp && !game.completed && round?.timestamp && !round.completed;
   const isPlaylistThisRounds = round?.playlistID === playlistID;
@@ -322,6 +324,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
           <SpotifyButton
             icon={<PlayArrowIcon />}
             style={{ margin: 16 }}
+            disabled={!players?.length}
             onClick={handleNextClick}
           >
             {isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`}
