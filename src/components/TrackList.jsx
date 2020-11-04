@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import useLocalStorage from 'react-use-localstorage';
 import { useAsync } from 'react-async-hook';
@@ -272,87 +272,67 @@ export default ({ categoryID, playlistID, gameRef }) => {
     }
   }, [hasInteracted, track?.completed, game?.paused]);
 
-  const body = useMemo(() => {
-    if (track && hasInteracted && isInProgress && !game?.paused) {
-      return (
-        <Choices
-          choices={track.choices}
-          correctID={track.completed && track.id}
-          style={{ flex: 'auto', overflow: 'hidden' }}
-        />
-      );
-    }
-
-    return (
-      <div style={styles.container} onClick={handleClick}>
-        <TileGrid style={styles.bg}>
-          {tracks && tracks.map(choice =>
-            <TileButton
-              key={choice.id}
-              image={choice.album.images[0].url}
-              style={{ margin: 0 }}
-            />
-          )}
-        </TileGrid>
-
-        <Card raised style={styles.card}>
-          <Typography color="textSecondary" variant="subtitle1">
-            {category && category.name}
-          </Typography>
-          <Typography color="textPrimary" variant="h4" style={{ margin: 16 }}>
-            {playlist && playlist.name}
-          </Typography>
-
-          {isPlaylistLastCompleted &&
-            <TileGrid>
-              {pickedTracks.map(track =>
-                <Tooltip
-                  key={track.id}
-                  title={`${track.name} by ${track.artists.map(({ name }) => name).join(', ')}`}
-                >
-                  <TileButton
-                    image={track.album.images[0].url}
-                    size={64}
-                    onMouseEnter={() => hasInteracted && audio.play(track.preview_url)}
-                    onMouseLeave={() => hasInteracted && audio.stop()}
-                  />
-                </Tooltip>
-              )}
-            </TileGrid>
-          }
-
-          <SpotifyButton
-            icon={<PlayArrowIcon />}
-            style={{ margin: 16 }}
-            disabled={!players?.length}
-            onClick={handleNextClick}
-          >
-            {isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`}
-          </SpotifyButton>
-        </Card>
-      </div>
-    );
-  }, [
-    !loading && category?.id,
-    !loading && playlist?.id,
-    !loading && round?.id,
-    !loading && track?.id,
-    !loading && track?.completed,
-    !loading && hasInteracted,
-    !loading && isInProgress,
-    !loading && pickedTracks,
-    !loading && game?.paused,
-  ]);
-
   if (loading) {
     return (
       <Loader />
     );
   }
-
+  if (track && hasInteracted && isInProgress && !game?.paused) {
+    return (
+      <Choices
+        choices={track.choices}
+        correctID={track.completed && track.id}
+        style={{ flex: 'auto', overflow: 'hidden' }}
+      />
+    );
+  }
   return (
-    <>
-      {body}
-    </>
+    <div style={styles.container} onClick={handleClick}>
+      <TileGrid style={styles.bg}>
+        {tracks && tracks.map(choice =>
+          <TileButton
+            key={choice.id}
+            image={choice.album.images[0].url}
+            style={{ margin: 0 }}
+          />
+        )}
+      </TileGrid>
+
+      <Card raised style={styles.card}>
+        <Typography color="textSecondary" variant="subtitle1">
+          {category && category.name}
+        </Typography>
+        <Typography color="textPrimary" variant="h4" style={{ margin: 16 }}>
+          {playlist && playlist.name}
+        </Typography>
+
+        {isPlaylistLastCompleted &&
+          <TileGrid>
+            {pickedTracks.map(track =>
+              <Tooltip
+                key={track.id}
+                title={`${track.name} by ${track.artists.map(({ name }) => name).join(', ')}`}
+              >
+                <TileButton
+                  image={track.album.images[0].url}
+                  size={64}
+                  onMouseEnter={() => hasInteracted && audio.play(track.preview_url)}
+                  onMouseLeave={() => hasInteracted && audio.stop()}
+                />
+              </Tooltip>
+            )}
+          </TileGrid>
+        }
+
+        <SpotifyButton
+          icon={<PlayArrowIcon />}
+          style={{ margin: 16 }}
+          disabled={!players?.length}
+          onClick={handleNextClick}
+        >
+          {isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`}
+        </SpotifyButton>
+      </Card>
+    </div>
   );
 };
