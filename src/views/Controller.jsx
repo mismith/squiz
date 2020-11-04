@@ -56,18 +56,6 @@ function usePlayerSwipes(gameRef, playerID) {
   };
 }
 
-function useZoomPrevention() {
-  useEffect(() => {
-    // prevent zooming on mobile: https://stackoverflow.com/a/39711930/888928
-    const handleGestureStart = e => e.preventDefault();
-    document.addEventListener('gesturestart', handleGestureStart);
-
-    return () => {
-      document.removeEventListener('gesturestart', handleGestureStart);
-    };
-  }, []);
-}
-
 const styles = {
   controller: {
     display: 'flex',
@@ -109,7 +97,6 @@ export default function Controller({ gameID, playerID }) {
   const gameRef = firestore.collection('games').doc(gameID);
   const playerRef = gameRef.collection('players').doc(playerID);
 
-  useZoomPrevention();
   useConnectivityStatus(playerRef);
   const { swipe, setSwipe, handlers } = usePlayerSwipes(gameRef, playerID);
 
