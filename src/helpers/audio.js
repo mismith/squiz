@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CHOICES_TIMEOUT } from './game';
 
 export let player;
@@ -52,17 +52,17 @@ export async function play(src = undefined) {
 export function useProgress(total = CHOICES_TIMEOUT) {
   const [progress, setProgress] = useState(0);
   const ref = useRef();
-  const animate = () => {
+  const animate = useCallback(() => {
     if (timer.start) {
       const elapsed = Date.now() - timer.start;
       setProgress(Math.round(elapsed / total * 100));
     }
     ref.current = window.requestAnimationFrame(animate);
-  };
+  }, [total]);
   useEffect(() => {
     ref.current = window.requestAnimationFrame(animate);
     return () => window.cancelAnimationFrame(ref.current);
-  }, []);
+  }, [animate]);
 
   return progress;
 }

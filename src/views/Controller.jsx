@@ -99,14 +99,7 @@ export default function Controller({ gameID, playerID }) {
   const { value: player } = useDocumentData(playerRef, null, 'id');
 
   useConnectivityStatus(playerRef);
-  const { swipe, setSwipe, handlers } = usePlayerSwipes(gameRef, playerID);
-
-  const roundsRef = gameRef.collection('rounds');
-  const { value: { ref: roundRef } = {} } = useLatestDocument(roundsRef);
-  const { value: track } = useLatestDocument(roundRef?.collection('tracks'));
-  useEffect(() => {
-    setSwipe(null);
-  }, [track]);
+  const { swipe, handlers } = usePlayerSwipes(gameRef, playerID);
 
   return (
     <div style={styles.controller} {...handlers}>
