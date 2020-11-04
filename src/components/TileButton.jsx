@@ -31,12 +31,12 @@ const useStyles = makeStyles({
   },
 });
 
-export default React.forwardRef(({ label, image, size = 200, style, children, ...props }, ref) => {
+export default React.forwardRef(({ label, image, size = 200, className, style, children, ...props }, ref) => {
   const classes = useStyles();
 
   return (
     <ButtonBase
-      className={classes.button}
+      className={`${className} ${classes.button}`}
       style={{ ...style, width: size, height: size }}
       {...props}
       ref={ref}
