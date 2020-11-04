@@ -41,7 +41,6 @@ const styles = {
     alignItems: 'center',
     flex: 'auto',
     position: 'relative',
-    overflow: 'hidden',
   },
   bg: {
     position: 'absolute',
@@ -52,6 +51,7 @@ const styles = {
     pointerEvents: 'none',
     filter: 'blur(20px)',
     justifyContent: 'space-around',
+    overflow: 'hidden',
     zIndex: 0,
   },
   card: {
