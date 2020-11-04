@@ -13,6 +13,7 @@ export default function useConnectivityStatus(ref, key = 'inactive') {
       setInactive(document.hidden ? FieldValue.serverTimestamp() : FieldValue.delete());
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    handleVisibilityChange();
 
     // monitor tab closes
     const handleBeforeUnload = () => {
@@ -24,5 +25,5 @@ export default function useConnectivityStatus(ref, key = 'inactive') {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [ref]);
+  }, [ref, key]);
 }
