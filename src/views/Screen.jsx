@@ -1,28 +1,20 @@
-import React, { useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import React from 'react';
 import { useDocumentData, useCollectionData } from 'react-firebase-hooks/firestore';
 import { useAsync } from 'react-async-hook';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
-import CloseIcon from '@material-ui/icons/Close';
-import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
-import Home from '@material-ui/icons/Home';
 
-import GameInfo from '../components/GameInfo';
+import TopBar from '../components/TopBar';
 import CategoryList from '../components/CategoryList';
 import PlaylistList from '../components/PlaylistList';
 import TrackList from '../components/TrackList';
 import Players from '../components/Players';
 import Loader from '../components/Loader';
 import ProgressIndicator from '../components/ProgressIndicator';
-import DialogConfirm from '../components/DialogConfirm';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
 import { firestore } from '../helpers/firebase';
 import { loadCategories, loadCategoryPlaylists } from '../helpers/spotify';
-import { endGame } from '../helpers/game';
 
 const styles = {
   container: {
@@ -48,64 +40,6 @@ const styles = {
   },
 };
 
-export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
-  let to = '';
-  if (gameID && categoryID) {
-    to += `/games/${gameID}`;
-  }
-  if (categoryID && playlistID) {
-    to += `/${categoryID}`;
-  }
-
-  const history = useHistory();
-  const [confirmQuit, setConfirmQuit] = useState(false);
-  const handleCancelQuit = () => setConfirmQuit(false);
-  const handleConfirmQuit = async () => {
-    await endGame(gameRef);
-    handleCancelQuit();
-    history.push('/');
-  };
-
-  return (
-    <AppBar color="default" position="static">
-      <Toolbar style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
-        <Grid item xs={2}>
-          {to ? (
-            <Button component={Link} to={to}>
-              <ArrowBackIosIcon style={{ marginRight: 8 }} />
-              Back
-            </Button>
-          ) : (
-            <Button component={Link} to="/">
-              <Home style={{ marginRight: 8 }} />
-              Home
-            </Button>
-          )}
-        </Grid>
-
-        <Grid item container xs>
-          <GameInfo name="Game Site" value={window.location.host} color="primary" />
-          <GameInfo name="Game Code" value={gameID} color="secondary" />
-        </Grid>
-
-        <Grid item container xs={2} justify="flex-end">
-          <Button onClick={() => setConfirmQuit(true)}>
-            <CloseIcon style={{ marginRight: 8 }} />
-            Quit
-          </Button>
-          <DialogConfirm
-            open={Boolean(confirmQuit)}
-            title="Quit Game"
-            body="Are you sure you want to permanently end this game for all players?"
-            onCancel={handleCancelQuit}
-            onConfirm={handleConfirmQuit}
-          />
-        </Grid>
-      </Toolbar>
-    </AppBar>
-  );
-}
-
 export default function Screen({ gameID, categoryID, playlistID }) {
   const gameRef = firestore.collection('games').doc(gameID);
   const {
@@ -129,13 +63,7 @@ export default function Screen({ gameID, categoryID, playlistID }) {
 
   return (
     <div style={styles.container}>
-      <TopBar
-        gameID={gameID}
-        categoryID={categoryID}
-        playlistID={playlistID}
-        game={game}
-        gameRef={gameRef}
-      />
+      <TopBar />
 
       {loading
         ? <Loader />
