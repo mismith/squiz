@@ -115,11 +115,11 @@ export default function Screen({ gameID, categoryID, playlistID }) {
   const {
     result: categories,
     loading: categoriesLoading,
-  } = useAsync(() => loadCategories(), []);
+  } = useAsync(loadCategories, []);
   const {
     result: playlists,
     loading: playlistsLoading,
-  } = useAsync(() => categoryID && loadCategoryPlaylists(categoryID), [categoryID]);
+  } = useAsync(loadCategoryPlaylists, [categoryID]);
   const loading = gameLoading || categoriesLoading || playlistsLoading;
 
   const playersRef = gameRef.collection('players').orderBy('score', 'desc');

@@ -74,15 +74,15 @@ export default ({ categoryID, playlistID, gameRef }) => {
   const {
     result: category,
     loading: categoryLoading,
-  } = useAsync(() => loadCategory(categoryID), [categoryID]);
+  } = useAsync(loadCategory, [categoryID]);
   const {
     result: playlist,
     loading: playlistLoading,
-  } = useAsync(() => loadPlaylist(playlistID), [playlistID]);
+  } = useAsync(loadPlaylist, [playlistID]);
   const {
     result: tracks,
     loading: tracksLoading,
-  } = useAsync(() => loadPlaylistTracks(playlistID), [playlistID]);
+  } = useAsync(loadPlaylistTracks, [playlistID]);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [usedTrackIDs, setUsedTrackIDs] = useLocalStorage('usedTracks', '');
 
