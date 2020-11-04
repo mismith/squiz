@@ -30,12 +30,12 @@ export default () => {
         <Route
           path="/games/:gameID/players/:playerID"
           exact
-          render={props => <Controller {...props} {...props.match.params} />}
+          component={Controller}
         />
         <Route
           path="/games/:gameID/:categoryID?/:playlistID?"
           exact
-          render={props => <Screen {...props} {...props.match.params} />}
+          component={Screen}
         />
         <Route
           path="/*"

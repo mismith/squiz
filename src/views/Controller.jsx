@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRouteMatch } from 'react-router-dom';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
 import { useSwipeable } from 'react-swipeable';
 import AppBar from '@material-ui/core/AppBar';
@@ -93,7 +94,8 @@ const styles = {
   },
 };
 
-export default function Controller({ gameID, playerID }) {
+export default function Controller() {
+  const { params: { gameID, playerID } } = useRouteMatch();
   const gameRef = firestore.collection('games').doc(gameID);
   const playerRef = gameRef.collection('players').doc(playerID);
   const { value: player } = useDocumentData(playerRef, null, 'id');

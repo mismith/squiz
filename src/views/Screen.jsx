@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouteMatch } from 'react-router-dom';
 import { useDocumentData, useCollectionData } from 'react-firebase-hooks/firestore';
 import { useAsync } from 'react-async-hook';
 import AppBar from '@material-ui/core/AppBar';
@@ -40,7 +41,8 @@ const styles = {
   },
 };
 
-export default function Screen({ gameID, categoryID, playlistID }) {
+export default function Screen() {
+  const { params: { gameID, categoryID, playlistID } } = useRouteMatch();
   const gameRef = firestore.collection('games').doc(gameID);
   const {
     value: game,
