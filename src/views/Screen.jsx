@@ -9,8 +9,9 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import CloseIcon from '@material-ui/icons/Close';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
+import Home from '@material-ui/icons/Home';
 
-import GameCode from '../components/GameCode';
+import GameInfo from '../components/GameInfo';
 import CategoryList from '../components/CategoryList';
 import PlaylistList from '../components/PlaylistList';
 import TrackList from '../components/TrackList';
@@ -69,18 +70,27 @@ export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
     <AppBar color="default" position="static">
       <Toolbar style={{ justifyContent: 'center' }}>
         <Grid item xs={4}>
-          {categoryID ? (
+          {to ? (
             <Button component={Link} to={to}>
               <ArrowBackIosIcon style={{ marginRight: 8 }} />
               Back
             </Button>
           ) : (
-            <Button onClick={() => setConfirmQuit(true)}>
-              <CloseIcon style={{ marginRight: 8 }} />
-              Quit
+            <Button component={Link} to="/">
+              <Home style={{ marginRight: 8 }} />
+              Home
             </Button>
           )}
+        </Grid>
 
+        <GameInfo name="Game Site" value={window.location.host} color="primary" />
+        <GameInfo name="Game Code" value={gameID} color="secondary" />
+
+        <Grid item container xs={4} justify="flex-end">
+          <Button onClick={() => setConfirmQuit(true)}>
+            <CloseIcon style={{ marginRight: 8 }} />
+            Quit
+          </Button>
           <DialogConfirm
             open={Boolean(confirmQuit)}
             title="Quit Game"
@@ -89,10 +99,6 @@ export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
             onConfirm={handleConfirmQuit}
           />
         </Grid>
-
-        <GameCode gameID={gameID} />
-
-        <Grid item container xs={4} />
       </Toolbar>
     </AppBar>
   );

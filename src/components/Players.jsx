@@ -111,12 +111,11 @@ export default function Players({ gameRef }) {
         onCancel={handleClose}
         onConfirm={handleRemove}
       />
-      {playersWithResponses.length < 2 &&
-        <div style={{ textAlign: 'center', margin: 'auto' }}>
-          <Typography variant="overline" component="div">Join Game at</Typography>
-          <Typography variant="h4" color="primary">{window.location.host}</Typography>
-        </div>
-      }
+      {!playersWithResponses.length && (
+        <Typography variant="h3" color="secondary" style={{ margin: 'auto' }}>
+          Join Game to Play
+        </Typography>
+      )}
     </>
   );
 }

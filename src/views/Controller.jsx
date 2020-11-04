@@ -5,7 +5,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
-import GameCode from '../components/GameCode';
+import GameInfo from '../components/GameInfo';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
 import { firestore, FieldValue } from '../helpers/firebase';
 import { useLatestDocument, useTrack } from '../helpers/game';
@@ -96,6 +96,7 @@ const styles = {
 export default function Controller({ gameID, playerID }) {
   const gameRef = firestore.collection('games').doc(gameID);
   const playerRef = gameRef.collection('players').doc(playerID);
+  const { value: player } = useDocumentData(playerRef, null, 'id');
 
   useConnectivityStatus(playerRef);
   const { swipe, setSwipe, handlers } = usePlayerSwipes(gameRef, playerID);
@@ -110,8 +111,10 @@ export default function Controller({ gameID, playerID }) {
   return (
     <div style={styles.controller} {...handlers}>
       <AppBar color="default" position="static">
-        <Toolbar>
-          <GameCode gameID={gameID} />
+        <Toolbar style={{ flexWrap: 'wrap' }}>
+          <GameInfo name="Game Site" value={window.location.host} color="primary" />
+          <GameInfo name="Game Code" value={gameID} color="secondary" />
+          <GameInfo name="Your Name" value={player?.name} />
         </Toolbar>
       </AppBar>
 
