@@ -6,6 +6,7 @@ import shuffleArray from 'shuffle-array';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
 import Tooltip from '@material-ui/core/Tooltip';
+import { makeStyles } from '@material-ui/core/styles';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 
 import TileGrid from './TileGrid';
@@ -34,8 +35,8 @@ import {
 } from '../helpers/game';
 import * as audio from '../helpers/audio';
 
-const styles = {
-  container: {
+const useStyles = makeStyles(theme => ({
+  root: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -60,7 +61,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     maxWidth: '80%',
-    padding: 16,
+    padding: theme.spacing(2),
     margin: 'auto',
     zIndex: 1,
   },
@@ -68,9 +69,11 @@ const styles = {
     justifyContent: 'center',
     zIndex: 1,
   },
-};
+}));
 
-export default ({ categoryID, playlistID, gameRef }) => {
+export default function TrackList({ categoryID, playlistID, gameRef }) {
+  const classes = useStyles();
+
   const {
     result: category,
     loading: categoryLoading,
@@ -103,11 +106,11 @@ export default ({ categoryID, playlistID, gameRef }) => {
 
   const loading = categoryLoading || playlistLoading || tracksLoading || playersLoading
     || gameLoading || roundsLoading || roundRefLoading || roundLoading || trackLoading;
-  const isInProgress = game?.timestamp && !game.completed && round?.timestamp && !round.completed;
+  const isInProgress = game?.timestamp && !game?.completed && round?.timestamp && !round?.completed;
   const isPlaylistThisRounds = round?.playlistID === playlistID;
-  const isPlaylistInProgress = isPlaylistThisRounds && !round.completed;
-  const isPlaylistLastCompleted = isPlaylistThisRounds && round.completed;
-  const isPlaylistAlreadyPlayed = rounds && round && rounds.some(r => r.playlistID === playlistID);
+  const isPlaylistInProgress = isPlaylistThisRounds && !round?.completed;
+  const isPlaylistLastCompleted = isPlaylistThisRounds && round?.completed;
+  const isPlaylistAlreadyPlayed = round && rounds?.some(r => r.playlistID === playlistID);
 
   async function endGame() {
     audio.stop();
@@ -287,8 +290,8 @@ export default ({ categoryID, playlistID, gameRef }) => {
     );
   }
   return (
-    <div style={styles.container} onClick={handleClick}>
-      <TileGrid style={styles.bg}>
+    <div className={classes.root} onClick={handleClick}>
+      <TileGrid className={classes.bg}>
         {tracks && tracks.map(choice =>
           <TileButton
             key={choice.id}
@@ -298,7 +301,7 @@ export default ({ categoryID, playlistID, gameRef }) => {
         )}
       </TileGrid>
 
-      <Card raised style={styles.card}>
+      <Card raised className={classes.card}>
         <Typography color="textSecondary" variant="subtitle1">
           {category && category.name}
         </Typography>
