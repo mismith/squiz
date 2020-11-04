@@ -68,8 +68,8 @@ export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
 
   return (
     <AppBar color="default" position="static">
-      <Toolbar style={{ justifyContent: 'center' }}>
-        <Grid item xs={4}>
+      <Toolbar style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Grid item xs={2}>
           {to ? (
             <Button component={Link} to={to}>
               <ArrowBackIosIcon style={{ marginRight: 8 }} />
@@ -83,10 +83,12 @@ export function TopBar({ gameID, categoryID, playlistID, game, gameRef }) {
           )}
         </Grid>
 
-        <GameInfo name="Game Site" value={window.location.host} color="primary" />
-        <GameInfo name="Game Code" value={gameID} color="secondary" />
+        <Grid item container xs>
+          <GameInfo name="Game Site" value={window.location.host} color="primary" />
+          <GameInfo name="Game Code" value={gameID} color="secondary" />
+        </Grid>
 
-        <Grid item container xs={4} justify="flex-end">
+        <Grid item container xs={2} justify="flex-end">
           <Button onClick={() => setConfirmQuit(true)}>
             <CloseIcon style={{ marginRight: 8 }} />
             Quit
