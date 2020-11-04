@@ -1,5 +1,7 @@
 import SpotifyWebApi from 'spotify-web-api-js';
 
+const COUNTRY = 'CA';
+
 export const spotify = new SpotifyWebApi();
 
 export function toQueryString(obj) {
@@ -58,7 +60,7 @@ async function loadCached(getter, key) {
 
 export async function loadCategories() {
   const categories = await loadCached(async () => {
-    const response = await spotify.getCategories({ limit: 50 })
+    const response = await spotify.getCategories({ limit: 50, country: COUNTRY })
       .catch(handleAccessTokenExpired)
       .catch(handleAssetMissing);
   
@@ -71,7 +73,7 @@ export async function loadCategories() {
 }
 export async function loadCategoryPlaylists(categoryID) {
   return loadCached(async () => {
-    const response = await spotify.getCategoryPlaylists(categoryID, { limit: 50 })
+    const response = await spotify.getCategoryPlaylists(categoryID, { limit: 50, country: COUNTRY })
       .catch(handleAccessTokenExpired)
       .catch(handleAssetMissing);
     
@@ -80,7 +82,7 @@ export async function loadCategoryPlaylists(categoryID) {
 }
 export async function loadCategory(categoryID) {
   return loadCached(async () => {
-    const category = await spotify.getCategory(categoryID)
+    const category = await spotify.getCategory(categoryID, { country: COUNTRY })
       .catch(handleAccessTokenExpired);
 
     return category;
@@ -88,7 +90,7 @@ export async function loadCategory(categoryID) {
 }
 export async function loadPlaylist(playlistID) {
   return loadCached(async () => {
-    const playlist = await spotify.getPlaylist(playlistID)
+    const playlist = await spotify.getPlaylist(playlistID, { country: COUNTRY })
       .catch(handleAccessTokenExpired);
 
     return playlist;
@@ -96,7 +98,7 @@ export async function loadPlaylist(playlistID) {
 }
 export async function loadPlaylistTracks(playlistID) {
   const tracks = await loadCached(async () => {
-    const { items } = await spotify.getPlaylistTracks(playlistID)
+    const { items } = await spotify.getPlaylistTracks(playlistID, { country: COUNTRY })
       .catch(handleAccessTokenExpired);
 
     return items.map(({ track }) => track);
@@ -112,6 +114,7 @@ export async function loadDecoys(track) {
     const { tracks } = await spotify.getRecommendations({
       seed_tracks: track.id,
       seed_artists: track.artists.map(({ id }) => id),
+      country: COUNTRY,
     })
       .catch(handleAccessTokenExpired);
     return tracks;
