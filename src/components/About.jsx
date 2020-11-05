@@ -65,7 +65,7 @@ const useStyles = makeStyles(theme => ({
   '@keyframes highlight': {
     from: {
       boxShadow: `0 0 ${theme.spacing(2)}px ${theme.spacing(2)}px white`,
-    }
+    },
   },
   instructions: {
     '& strong': {
