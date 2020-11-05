@@ -122,6 +122,7 @@ export default function TrackList() {
   const nextTrack = async () => {
     const pickedTrack = pickRandomTrack(unpickedTracks);
     if (!pickedTrack) throw new Error('no more tracks'); // @TODO
+    if (!(await audio.load(pickedTrack.preview_url))) return nextTrack();
 
     const decoys = await loadDecoys(pickedTrack);
     const decoysUsed = [];
@@ -142,7 +143,7 @@ export default function TrackList() {
 
     // append trimmed track to round's list
     const newTrack = {
-      src: pickedTrack.preview_url || 'missing',
+      src: pickedTrack.preview_url,
       choices: shuffleArray([
         pickedTrack,
         ...decoysUsed,
