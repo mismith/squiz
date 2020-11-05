@@ -156,7 +156,7 @@ export default function TrackList() {
   const next = async () => {
     audio.stop();
 
-    if (pickedTracks?.length >= TRACKS_LIMIT) {
+    if (pickedTracks?.length >= TRACKS_LIMIT || !unpickedTracks?.length) {
       if (!round?.completed) {
         // @TODO: alert if track run out early
         await endRound(roundRef);
@@ -302,7 +302,7 @@ export default function TrackList() {
         <SpotifyButton
           icon={<PlayArrowIcon />}
           style={{ margin: 16 }}
-          disabled={!players?.length}
+          disabled={!players?.length || Boolean(!unpickedTracks?.length && round?.completed)}
           onClick={handleNextClick}
         >
           {isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`}
