@@ -56,7 +56,7 @@ const useStyles = makeStyles(theme => ({
     bottom: 0,
     pointerEvents: 'none',
     filter: 'blur(20px)',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     overflow: 'hidden',
     zIndex: 0,
   },

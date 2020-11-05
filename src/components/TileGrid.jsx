@@ -1,10 +1,18 @@
 import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 
-export default ({ children, style, ...props }) => (
-  <div
-    style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', padding: 8, ...style }}
-    {...props}
-  >
-    {children}
-  </div>
-);
+const useStyles = makeStyles(theme => ({
+  root: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    padding: theme.spacing(),
+  },
+}));
+
+export default function TileGrid({ className, ...props }) {
+  const classes = useStyles();
+  return (
+    <div className={`${classes.root} ${className}`} {...props} />
+  );
+}
