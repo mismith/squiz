@@ -7,6 +7,7 @@ import Typography from '@material-ui/core/Typography';
 import SpotifyButton from './SpotifyButton';
 import DialogConfirm from './DialogConfirm';
 import ScoreChange from './ScoreChange';
+import Loader from './Loader';
 import {
   RESULTS_COUNTUP,
   getTrackPointsForPlayer,
@@ -25,41 +26,72 @@ const styles = {
   },
 };
 
-export default function Players({ gameRef }) {
+export function Player({ player, gameRef, onRemove, ...props }) {
   const { value: game, loading: gameLoading } = useDocumentData(gameRef);
   const roundsRef = gameRef.collection('rounds');
   const { value: { ref: roundRef } = {}, loading: roundRefLoading } = useLatestDocument(roundsRef);
   const { value: round, loading: roundLoading } = useDocumentData(roundRef, null, 'id');
   const { track, loading: trackLoading } = useTrack(roundRef);
+  
+  const loading = gameLoading || roundRefLoading || roundLoading || trackLoading;
 
-  const playersRef = gameRef.collection('players');
-  const {
-    value: players = [],
-    loading: playersLoading,
-  } = useCollectionData(playersRef.orderBy('timestamp'), null, 'id');
-
-  const loading = gameLoading || roundRefLoading || roundLoading || trackLoading
-    || playersLoading;
   const gameActive = !loading && !game?.paused;
   const trackCompleted = track?.completed;
   const roundInProgress = !round?.completed;
+  const response = track?.players?.[player.id];
+  const isCorrect = response?.choiceID === track?.id;
+  const showCorrectColor = isCorrect ? 'primary' : 'secondary';
+  const points = getTrackPointsForPlayer(track, player.id); // @TODO: compute difference from local state instead of recalculating
 
-  const playersWithResponses = players.map((player) => {
-    const response = track?.players?.[player.id];
-    const isCorrect = response?.choiceID === track?.id;
-    const showCorrectColor = isCorrect ? 'primary' : 'secondary';
-    const points = getTrackPointsForPlayer(track, player.id); // @TODO: compute difference from local state instead of recalculating
+  const score = player.score || 0;
+  const variant = gameActive && roundInProgress && response ? 'contained' : 'outlined';
+  const color = gameActive && trackCompleted && roundInProgress ? showCorrectColor : 'default';
+  const change = (gameActive && trackCompleted && roundInProgress && isCorrect && points) || 0;
 
-    return {
-      ...player,
-      score: player.score || 0,
-      $variant: gameActive && roundInProgress && response ? 'contained' : 'outlined',
-      $color: gameActive && trackCompleted && roundInProgress ? showCorrectColor : 'default',
-      $change: (gameActive && trackCompleted && roundInProgress && isCorrect && points) || 0,
-      $isCorrect: isCorrect,
-    };
-  });
+  if (loading) {
+    return (
+      <Loader />
+    );
+  }
+  return (
+    <div
+      style={{
+        ...styles.player,
+        visibility: !player.id && 'hidden',
+        opacity: player.inactive ? 0.5 : 1,
+      }}
+      {...props}
+    >
+      <Grid container justify="center" alignItems="center" style={{ marginBottom: 8 }}>
+        <ScoreChange change={change} style={{ visibility: 'hidden' }} />
+        <Typography variant="h5">
+          <CountTo
+            from={score - change}
+            to={score}
+            speed={RESULTS_COUNTUP}
+            delay={32}
+          />
+        </Typography>
+        <ScoreChange change={change} />
+      </Grid>
+      <SpotifyButton
+        variant={variant}
+        color={color}
+        style={styles.name}
+        onClick={() => onRemove?.(player)}
+      >
+        {player.name}
+      </SpotifyButton>
+    </div>
+  );
+}
 
+export default function Players({ gameRef }) {
+  const playersRef = gameRef.collection('players');
+  const {
+    value: players = [],
+    loading,
+  } = useCollectionData(playersRef.orderBy('timestamp'), null, 'id');
 
   const [playerToRemove, setPlayerToRemove] = useState(null);
   const handleClose = () => setPlayerToRemove(null);
@@ -68,35 +100,27 @@ export default function Players({ gameRef }) {
     handleClose();
   };
 
+  if (loading) {
+    return (
+      <Loader />
+    );
+  }
   return (
     <>
-      {playersWithResponses.map(player =>
-        <div
+      {players.map(player => (
+        <Player
           key={player.id}
-          style={{...styles.player, visibility: !player.id && 'hidden', opacity: player.inactive ? 0.5 : 1 }}
-        >
-          <Grid container justify="center" alignItems="center" style={{ marginBottom: 8 }}>
-            {gameActive && <ScoreChange change={player.$change} style={{ visibility: 'hidden' }} />}
-            <Typography variant="h5">
-              <CountTo
-                from={player.score - player.$change}
-                to={player.score}
-                speed={RESULTS_COUNTUP}
-                delay={32}
-              />
-            </Typography>
-            {gameActive && <ScoreChange change={player.$change} />}
-          </Grid>
-          <SpotifyButton
-            variant={player.$variant}
-            color={player.$color}
-            style={styles.name}
-            onClick={() => setPlayerToRemove(player)}
-          >
-            {player.name}
-          </SpotifyButton>
-        </div>
+          gameRef={gameRef}
+          player={player}
+          onRemove={player => setPlayerToRemove(player)}
+        />
+      ))}
+      {!players.length && (
+        <Typography variant="h3" color="secondary" style={{ margin: 'auto' }}>
+          Join Game to Play
+        </Typography>
       )}
+
       <DialogConfirm
         open={Boolean(playerToRemove)}
         title="Remove player?"
@@ -104,11 +128,6 @@ export default function Players({ gameRef }) {
         onCancel={handleClose}
         onConfirm={handleRemove}
       />
-      {!playersWithResponses.length && (
-        <Typography variant="h3" color="secondary" style={{ margin: 'auto' }}>
-          Join Game to Play
-        </Typography>
-      )}
     </>
   );
 }
