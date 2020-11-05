@@ -41,9 +41,9 @@ const styles = {
   },
 };
 
-export default function Screen() {
-  const { params: { gameID, categoryID, playlistID } } = useRouteMatch();
-  const gameRef = firestore.collection('games').doc(gameID);
+export function Content({ gameRef }) {
+  const { params: { categoryID, playlistID } } = useRouteMatch();
+
   const {
     value: game,
     loading: gameLoading,
@@ -58,8 +58,64 @@ export default function Screen() {
   } = useAsync(loadCategoryPlaylists, [categoryID]);
   const loading = gameLoading || categoriesLoading || playlistsLoading;
 
+  if (loading) {
+    return (
+      <Loader />
+    );
+  }
+  return (
+    <>
+      {game?.id
+        ? (
+          <div style={styles.content}>
+            {game?.completed ? (
+              <GameOver gameRef={gameRef} />
+            ) : (
+              <>
+                {!categoryID && (
+                  <CategoryList categories={categories} />
+                )}
+                {categoryID && !playlistID && (
+                  <PlaylistList playlists={playlists} />
+                )}
+                {categoryID && playlistID && (
+                  <TrackList />
+                )}
+              </>
+            )}
+          </div>
+        ) : (
+          <Typography variant="h3" color="secondary" style={{ margin: 'auto' }}>
+            Game not found
+          </Typography>
+        )
+      }
+    </>
+  );
+}
+
+export function GameOver({ gameRef, ...props }) {
   const playersRef = gameRef.collection('players').orderBy('score', 'desc');
   const { value: [winner] = [] } = useCollectionData(playersRef, null, 'id');
+
+  return (
+    <Typography
+      variant="h2"
+      color="secondary"
+      style={{ textAlign: 'center', margin: 'auto' }}
+      {...props}
+    >
+      <span role="img" aria-label="Woohoo!">🎉🎉🎉</span><br />
+      {winner ? `${winner.name} wins!` : (
+        <span style={{ fontVariant: 'all-small-caps' }}>Game Over</span>
+      )}
+    </Typography>
+  );
+}
+
+export default function Screen() {
+  const { params: { gameID } } = useRouteMatch();
+  const gameRef = firestore.collection('games').doc(gameID);
 
   useConnectivityStatus(gameRef);
 
@@ -67,39 +123,7 @@ export default function Screen() {
     <div style={styles.container}>
       <TopBar />
 
-      {loading
-        ? <Loader />
-        : (game?.id
-          ? (
-            <div style={styles.content}>
-              {game?.completed ? (
-                <Typography variant="h2" color="secondary" style={{ textAlign: 'center', margin: 'auto' }}>
-                  <span role="img" aria-label="Woohoo!">🎉🎉🎉</span><br />
-                  {winner ? `${winner.name} wins!` : (
-                    <span style={{ fontVariant: 'all-small-caps' }}>Game Over</span>
-                  )}
-                </Typography>
-              ) : (
-                <>
-                  {!categoryID && (
-                    <CategoryList categories={categories} />
-                  )}
-                  {categoryID && !playlistID && (
-                    <PlaylistList playlists={playlists} />
-                  )}
-                  {categoryID && playlistID && (
-                    <TrackList />
-                  )}
-                </>
-              )}
-            </div>
-          ) : (
-            <Typography variant="h3" color="secondary" style={{ margin: 'auto' }}>
-              Game not found
-            </Typography>
-          )
-        )
-      }
+      <Content gameRef={gameRef} />
   
       <AppBar color="default" position="static" style={{ paddingBottom: 16 }}>
         <ProgressIndicator gameRef={gameRef} style={{ marginBottom: 16 }} />
