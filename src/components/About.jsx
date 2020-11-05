@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
-import Zoom from '@material-ui/core/Zoom';
 import { makeStyles } from '@material-ui/core/styles';
 
 import Device from './Device';
 import SpotifyButton from './SpotifyButton';
+import ScoreChange from './ScoreChange';
 import { directions } from '../helpers/directions';
 
 const useStyles = makeStyles(theme => ({
@@ -104,13 +104,12 @@ function Choice(props) {
   );
 }
 function Player({ variant, orientation, activeDir, index, ...props }) {
+  const change = activeDir[0]?.[1] && activeDir[0]?.[0] === activeDir[index]?.[0]
+    ? Math.round((activeDir[0]?.[1] - activeDir[index]?.[1]) / 7000 * 100)
+    : 0;
   return (
     <Grid container direction="column" alignItems="center" {...props}>
-      <Zoom in={activeDir[0]?.[1] && activeDir[0]?.[0] === activeDir[index]?.[0]}>
-        <Typography color="secondary" style={{ fontWeight: 'bold' }}>
-          +{activeDir[0]?.[1] ? Math.round((activeDir[0]?.[1] - activeDir[index]?.[1]) / 7000 * 100) : 0}
-        </Typography>
-      </Zoom>
+      <ScoreChange change={change} />
       <Device variant={variant} orientation={orientation}>
         <Directions active={activeDir[index]?.[0]} />
       </Device>

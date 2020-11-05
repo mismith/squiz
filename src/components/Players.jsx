@@ -3,10 +3,10 @@ import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firesto
 import CountTo from 'react-count-to';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
-import Zoom from '@material-ui/core/Zoom';
 
 import SpotifyButton from './SpotifyButton';
 import DialogConfirm from './DialogConfirm';
+import ScoreChange from './ScoreChange';
 import {
   RESULTS_COUNTUP,
   getTrackPointsForPlayer,
@@ -60,13 +60,6 @@ export default function Players({ gameRef }) {
     };
   });
 
-  const PlayerChange = ({ player, ...props }) => (
-    <Zoom in={gameActive && !!player.$change} {...props}>
-      <Typography variant="h6" color="primary">
-        <span style={{ margin: 4 }}>+</span>{player.$change}
-      </Typography>
-    </Zoom>
-  );
 
   const [playerToRemove, setPlayerToRemove] = useState(null);
   const handleClose = () => setPlayerToRemove(null);
@@ -83,7 +76,7 @@ export default function Players({ gameRef }) {
           style={{...styles.player, visibility: !player.id && 'hidden', opacity: player.inactive ? 0.5 : 1 }}
         >
           <Grid container justify="center" alignItems="center" style={{ marginBottom: 8 }}>
-            <PlayerChange player={player} style={{ visibility: 'hidden' }} />
+            {gameActive && <ScoreChange change={player.$change} style={{ visibility: 'hidden' }} />}
             <Typography variant="h5">
               <CountTo
                 from={player.score - player.$change}
@@ -92,7 +85,7 @@ export default function Players({ gameRef }) {
                 delay={32}
               />
             </Typography>
-            <PlayerChange player={player} />
+            {gameActive && <ScoreChange change={player.$change} />}
           </Grid>
           <SpotifyButton
             variant={player.$variant}
