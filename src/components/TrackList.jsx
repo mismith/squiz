@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
-import useLocalStorage from 'react-use-localstorage';
+import { useRouteMatch } from 'react-router-dom';
 import { useAsync } from 'react-async-hook';
+import useLocalStorage from 'react-use-localstorage';
+import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import shuffleArray from 'shuffle-array';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
@@ -14,7 +15,7 @@ import TileButton from './TileButton';
 import SpotifyButton from './SpotifyButton';
 import Choices from './Choices';
 import Loader from './Loader';
-import { FieldValue } from '../helpers/firebase';
+import { firestore, FieldValue } from '../helpers/firebase';
 import {
   loadCategory,
   loadPlaylist,
@@ -71,8 +72,10 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function TrackList({ categoryID, playlistID, gameRef }) {
+export default function TrackList() {
   const classes = useStyles();
+  const { params: { gameID, categoryID, playlistID, } } = useRouteMatch();
+  const gameRef = firestore.collection('games').doc(gameID);
 
   const {
     result: category,

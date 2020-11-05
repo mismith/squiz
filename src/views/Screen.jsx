@@ -88,11 +88,7 @@ export default function Screen() {
                     <PlaylistList playlists={playlists} />
                   )}
                   {categoryID && playlistID && (
-                    <TrackList
-                      categoryID={categoryID}
-                      playlistID={playlistID}
-                      gameRef={gameRef}
-                    />
+                    <TrackList />
                   )}
                 </>
               )}
@@ -101,7 +97,8 @@ export default function Screen() {
             <Typography variant="h3" color="secondary" style={{ margin: 'auto' }}>
               Game not found
             </Typography>
-          ))
+          )
+        )
       }
   
       <AppBar color="default" position="static" style={{ paddingBottom: 16 }}>
