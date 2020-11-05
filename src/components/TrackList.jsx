@@ -30,9 +30,13 @@ import {
   pickRandomTrack,
   useTrack,
   trimTrack,
-  getTrackPointsForPlayer,
   useLatestDocument,
-  endGame as endGameHelper,
+  scorePlayerResponses,
+  endGame,
+  endRound,
+  endTrack,
+  resumeGame,
+  pauseGame,
 } from '../helpers/game';
 import * as audio from '../helpers/audio';
 
@@ -115,26 +119,6 @@ export default function TrackList() {
   const isPlaylistLastCompleted = isPlaylistThisRounds && round?.completed;
   const isPlaylistAlreadyPlayed = round && rounds?.some(r => r.playlistID === playlistID);
 
-  async function endGame() {
-    audio.stop();
-
-    await endGameHelper(gameRef);
-  }
-  async function endRound() {
-    audio.stop();
-
-    await roundRef.set({
-      completed: FieldValue.serverTimestamp(),
-    }, { merge: true });
-  }
-  async function endTrack() {
-    audio.stop();
-
-    await tracksRef.doc(track.id).set({
-      completed: FieldValue.serverTimestamp(),
-    }, { merge: true });
-  }
-
   const nextTrack = async () => {
     const pickedTrack = pickRandomTrack(unpickedTracks);
     if (!pickedTrack) throw new Error('no more tracks'); // @TODO
@@ -174,12 +158,12 @@ export default function TrackList() {
     if (pickedTracks?.length >= TRACKS_LIMIT) {
       if (!round?.completed) {
         // @TODO: alert if track run out early
-        await endRound();
+        await endRound(roundRef);
 
         if (rounds?.length >= ROUNDS_LIMIT) {
           // @TODO: make this non-instant
           if (!game?.completed) {
-            await endGame();
+            await endGame(gameRef);
           }
         }
         return;
@@ -195,9 +179,7 @@ export default function TrackList() {
 
     if (game.paused) {
       // unpause/resume
-      await gameRef.set({
-        paused: FieldValue.delete(),
-      }, { merge: true });
+      await resumeGame(gameRef);
     }
 
     // resuming a track (e.g. after page refresh)
@@ -228,9 +210,7 @@ export default function TrackList() {
   useEffect(() => {
     if (!hasInteracted && !game?.paused) {
       // pause round until user interacts with screen
-      gameRef.set({
-        paused: FieldValue.serverTimestamp(),
-      }, { merge: true });
+      pauseGame(gameRef);
     }
   }, [hasInteracted, game?.id]);
   useAsync(async () => {
@@ -243,7 +223,7 @@ export default function TrackList() {
         await new Promise((resolve) => {
           audio.setTimeout(resolve, CHOICES_TIMEOUT);
         });
-        await endTrack();
+        await endTrack(tracksRef.doc(track.id));
       }
     } catch (err) {
       console.warn(err); // eslint-disable-line no-console
@@ -256,19 +236,7 @@ export default function TrackList() {
   useAsync(async () => {
     if (hasInteracted && track?.completed && !game?.paused) {
       // update all player scores
-      await Promise.all(Object.entries(track.players || {}).map(async ([playerID, response]) => {
-        const isCorrect = track.id === response.choiceID;
-        if (isCorrect) {
-          const points = getTrackPointsForPlayer(track, playerID);
-          const playerRef = gameRef.collection('players').doc(playerID);
-          const { score } = (await playerRef.get()).data();
-
-          return playerRef.set({
-            score: (score || 0) + (points || 0),
-          }, { merge: true });
-        }
-        return null;
-      }));
+      await scorePlayerResponses(gameRef, track);
 
       // show results
       await new Promise((resolve) => {
@@ -306,13 +274,13 @@ export default function TrackList() {
 
       <Card raised className={classes.card}>
         <Typography color="textSecondary" variant="subtitle1">
-          {category && category.name}
+          {category?.name}
         </Typography>
         <Typography color="textPrimary" variant="h4" style={{ margin: 16 }}>
-          {playlist && playlist.name}
+          {playlist?.name}
         </Typography>
 
-        {isPlaylistLastCompleted &&
+        {isPlaylistLastCompleted && (
           <TileGrid>
             {pickedTracks.map(track =>
               <Tooltip
@@ -328,7 +296,7 @@ export default function TrackList() {
               </Tooltip>
             )}
           </TileGrid>
-        }
+        )}
 
         <SpotifyButton
           icon={<PlayArrowIcon />}

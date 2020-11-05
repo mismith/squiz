@@ -1,6 +1,8 @@
 import { useCollection, useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import weightedRandom from 'weighted-random';
+
 import { FieldValue } from './firebase';
+import * as audio from '../helpers/audio';
 
 export const ROUNDS_LIMIT = 5;
 export const TRACKS_LIMIT = 8;
@@ -89,8 +91,51 @@ export function getTrackPointsForPlayer(track, playerID) {
   return null;
 }
 
-export async function endGame(gameRef) {
+export async function scorePlayerResponses(gameRef, track) {
+  return Promise.all(Object.entries(track.players || {}).map(async ([playerID, response]) => {
+    const isCorrect = track.id === response.choiceID;
+    if (isCorrect) {
+      const points = getTrackPointsForPlayer(track, playerID);
+      const playerRef = gameRef.collection('players').doc(playerID);
+      const { score } = (await playerRef.get()).data();
+
+      return playerRef.set({
+        score: (score || 0) + (points || 0),
+      }, { merge: true });
+    }
+    return null;
+  }));
+}
+
+export async function pauseGame(gameRef) {
   return gameRef.set({
+    paused: FieldValue.serverTimestamp(),
+  }, { merge: true });
+}
+export async function resumeGame(gameRef) {
+  return gameRef.set({
+    paused: FieldValue.delete(),
+  }, { merge: true });
+}
+
+export async function endGame(gameRef) {
+  audio.stop();
+
+  return gameRef.set({
+    completed: FieldValue.serverTimestamp(),
+  }, { merge: true });
+}
+export async function endRound(roundRef) {
+  audio.stop();
+
+  return roundRef.set({
+    completed: FieldValue.serverTimestamp(),
+  }, { merge: true });
+}
+export async function endTrack(trackRef) {
+  audio.stop();
+
+  return trackRef.set({
     completed: FieldValue.serverTimestamp(),
   }, { merge: true });
 }
