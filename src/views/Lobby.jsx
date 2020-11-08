@@ -79,15 +79,28 @@ export default function Lobby() {
       return;
     }
 
+    const trimmedPlayerName = String(playerName || '').trim();
+    if (!trimmedPlayerName.length) {
+      setJoinGameLoading(false);
+      setPlayerNameError('Required');
+      return;
+    }
+
+    if (trimmedPlayerName.length > 48) {
+      setJoinGameLoading(false);
+      setPlayerNameError('Must be shorter than 48 characters');
+      return;
+    }
+
     const playersRef = gameRef.collection('players');
     const playerDocs = (await playersRef.get()).docs;
-    const playerUsingName = playerDocs.find(d => d.data()?.name === playerName);
+    const playerUsingName = playerDocs.find(d => d.data()?.name === trimmedPlayerName);
     const handleDuplicateName = () => {
       setJoinGameLoading(false);
       setPlayerNameError('A player is already using this name');
     };
     const playerData = {
-      name: playerName,
+      name: trimmedPlayerName,
       timestamp: FieldValue.serverTimestamp(),
     };
     let playerID;
@@ -201,7 +214,7 @@ export default function Lobby() {
               required: 'Required',
               pattern: { value: /^\d{4}$/, message: 'Invalid: should be a 4-digit number' },
             })}
-            inputProps={{name: 'joinGameID'}}
+            inputProps={{ name: 'joinGameID' }}
             error={!!(errors.joinGameID || gameIDError)}
             helperText={errors.joinGameID ? errors.joinGameID.message : gameIDError}
             value={joinGameID}
@@ -226,7 +239,7 @@ export default function Lobby() {
             inputRef={register({
               required: 'Required',
             })}
-            inputProps={{name: 'playerName'}}
+            inputProps={{ name: 'playerName' }}
             error={!!(errors.playerName || playerNameError)}
             helperText={errors.joinGameID ? errors.joinGameID.message : playerNameError}
             value={playerName}
