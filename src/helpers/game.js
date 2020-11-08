@@ -9,7 +9,6 @@ export const TRACKS_LIMIT = 8;
 export const CHOICES_TIMEOUT = 10 * 1000;
 export const CHOICES_STARTUP = 1 * 1000;
 export const RESULTS_TIMEOUT = 3 * 1000;
-export const RESULTS_COUNTUP = 1 * 1000;
 
 export const getRandomID = (items = []) => {
   const randomIndex = Math.floor(Math.random() * items.length);

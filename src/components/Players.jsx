@@ -9,7 +9,6 @@ import DialogConfirm from './DialogConfirm';
 import ScoreChange from './ScoreChange';
 import Loader from './Loader';
 import {
-  RESULTS_COUNTUP,
   getTrackPointsForPlayer,
   useTrack,
   useLatestDocument,
@@ -68,7 +67,7 @@ export function Player({ player, gameRef, onRemove, ...props }) {
           <CountTo
             from={score - change}
             to={score}
-            speed={RESULTS_COUNTUP}
+            speed={1000}
             delay={32}
           />
         </Typography>
