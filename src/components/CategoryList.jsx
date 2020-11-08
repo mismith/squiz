@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
+import { useAsync } from 'react-async-hook';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
@@ -7,11 +8,19 @@ import ShuffleIcon from '@material-ui/icons/Shuffle';
 
 import TileGrid from './TileGrid';
 import TileButton from './TileButton';
+import Loader from './Loader';
 import { getRandomID } from '../helpers/game';
+import { loadCategories } from '../helpers/spotify';
 
-export default ({ categories = [] }) => {
-  const match = useRouteMatch();
-
+export default function CategoryList() {
+  const { url } = useRouteMatch();
+  const { result: categories, loading } = useAsync(loadCategories, []);
+  
+  if (loading) {
+    return (
+      <Loader />
+    );
+  }
   return (
     <>
       {categories.length ? (
@@ -19,7 +28,7 @@ export default ({ categories = [] }) => {
           <Toolbar>
             <Button
               component={Link}
-              to={`${match.url}/${getRandomID(categories) || ''}`}
+              to={`${url}/${getRandomID(categories) || ''}`}
               style={{ marginLeft: 'auto', marginRight: 'auto' }}
             >
               <ShuffleIcon style={{ marginRight: 16 }} />
@@ -33,7 +42,7 @@ export default ({ categories = [] }) => {
                 label={category.name}
                 image={category.icons[0].url}
                 component={Link}
-                to={`${match.url}/${category.id}`}
+                to={`${url}/${category.id}`}
               />
             )}
           </TileGrid>
@@ -45,4 +54,4 @@ export default ({ categories = [] }) => {
       )}
     </>
   );
-};
+}

@@ -5,8 +5,8 @@ const noSleep = new NoSleep();
 export default function useNoSleep() {
   useEffect(() => {
     const add = () => {
-      noSleep.enable();
       remove();
+      noSleep.enable();
     };
     const remove = () => {
       document.removeEventListener('click', add);
@@ -16,8 +16,8 @@ export default function useNoSleep() {
     document.addEventListener('touchstart', add);
 
     return () => {
-      noSleep.disable();
       remove();
+      noSleep.disable();
     };
   }, []);
 }

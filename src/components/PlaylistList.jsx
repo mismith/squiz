@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
+import { useAsync } from 'react-async-hook';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
@@ -7,11 +8,19 @@ import ShuffleIcon from '@material-ui/icons/Shuffle';
 
 import TileGrid from './TileGrid';
 import TileButton from './TileButton';
+import Loader from './Loader';
 import { getRandomID } from '../helpers/game';
+import { loadCategoryPlaylists } from '../helpers/spotify';
 
-export default ({ playlists = [] }) => {
-  const match = useRouteMatch();
+export default function PlaylistList() {
+  const { url, params: { categoryID } } = useRouteMatch();
+  const { result: playlists, loading } = useAsync(loadCategoryPlaylists, [categoryID]);
   
+  if (loading) {
+    return (
+      <Loader />
+    );
+  }
   return (
     <>
       {playlists.length ? (
@@ -19,7 +28,7 @@ export default ({ playlists = [] }) => {
           <Toolbar>
             <Button
               component={Link}
-              to={`${match.url}/${getRandomID(playlists) || ''}`}
+              to={`${url}/${getRandomID(playlists) || ''}`}
               style={{ marginLeft: 'auto', marginRight: 'auto' }}
             >
               <ShuffleIcon style={{ marginRight: 16 }} />
@@ -32,7 +41,7 @@ export default ({ playlists = [] }) => {
                 key={playlist.id}
                 image={playlist.images[0].url}
                 component={Link}
-                to={`${match.url}/${playlist.id}`}
+                to={`${url}/${playlist.id}`}
               />
             )}
           </TileGrid>
@@ -44,4 +53,4 @@ export default ({ playlists = [] }) => {
       )}
     </>
   );
-};
+}

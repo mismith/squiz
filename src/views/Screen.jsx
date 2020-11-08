@@ -1,7 +1,6 @@
 import React from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
-import { useAsync } from 'react-async-hook';
 import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
 
@@ -13,7 +12,6 @@ import Players from '../components/Players';
 import Loader from '../components/Loader';
 import ProgressIndicator from '../components/ProgressIndicator';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
-import { loadCategories, loadCategoryPlaylists } from '../helpers/spotify';
 import { useGame } from '../helpers/game';
 
 const styles = {
@@ -41,18 +39,8 @@ const styles = {
 };
 
 export function Content() {
-  const [{ value: game, loading: gameLoading }] = useGame();
+  const [{ value: game, loading }] = useGame();
   const { params: { categoryID, playlistID } } = useRouteMatch();
-
-  const {
-    result: categories,
-    loading: categoriesLoading,
-  } = useAsync(loadCategories, []);
-  const {
-    result: playlists,
-    loading: playlistsLoading,
-  } = useAsync(loadCategoryPlaylists, [categoryID]);
-  const loading = gameLoading || categoriesLoading || playlistsLoading;
 
   if (loading) {
     return (
@@ -69,10 +57,10 @@ export function Content() {
             ) : (
               <>
                 {!categoryID && (
-                  <CategoryList categories={categories} />
+                  <CategoryList />
                 )}
                 {categoryID && !playlistID && (
-                  <PlaylistList playlists={playlists} />
+                  <PlaylistList />
                 )}
                 {categoryID && playlistID && (
                   <TrackList />
