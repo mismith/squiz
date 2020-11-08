@@ -61,11 +61,6 @@ export function Player({ player, onRemove, className, ...props }) {
   const color = gameActive && trackCompleted && roundInProgress ? showCorrectColor : 'default';
   const change = (gameActive && trackCompleted && roundInProgress && isCorrect && points) || 0;
 
-  if (loading) {
-    return (
-      <Loader />
-    );
-  }
   return (
     <div
       className={`${classes.player} ${className || ''}`}
