@@ -13,6 +13,6 @@ const useStyles = makeStyles(theme => ({
 export default function TileGrid({ className, ...props }) {
   const classes = useStyles();
   return (
-    <div className={`${classes.root} ${className}`} {...props} />
+    <div className={`${classes.root} ${className || ''}`} {...props} />
   );
 }

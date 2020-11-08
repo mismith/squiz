@@ -64,7 +64,7 @@ export default React.forwardRef(({
 
   return (
     <ButtonBase
-      className={`${className} ${classes.button} ${isImageLoaded ? 'imageLoaded' : ''}`}
+      className={`${className || ''} ${classes.button} ${isImageLoaded ? 'imageLoaded' : ''}`}
       style={{ ...style, width: size, height: size }}
       {...props}
       ref={ref}
