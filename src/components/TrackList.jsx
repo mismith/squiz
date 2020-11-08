@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import { useAsync } from 'react-async-hook';
-import useLocalStorage from 'react-use-localstorage';
+import useLocalStorageState from 'use-local-storage-state';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import shuffleArray from 'shuffle-array';
 import Card from '@material-ui/core/Card';
@@ -94,7 +94,7 @@ export default function TrackList() {
     loading: tracksLoading,
   } = useAsync(loadPlaylistTracks, [playlistID]);
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [usedTrackIDs, setUsedTrackIDs] = useLocalStorage('usedTracks', '');
+  const [usedTrackIDs, setUsedTrackIDs] = useLocalStorageState('usedTracks', '');
 
   const { value: game, loading: gameLoading } = useDocumentData(gameRef, null, 'id');
   const playersRef = gameRef.collection('players');

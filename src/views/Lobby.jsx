@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
 import useForm from 'react-hook-form'
-import useLocalStorage from 'react-use-localstorage';
+import useLocalStorageState from 'use-local-storage-state';
 import { useAsync } from 'react-async-hook';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
@@ -55,10 +55,10 @@ export default function Lobby() {
   const classes = useStyles();
 
   const { register, handleSubmit, errors } = useForm();
-  const [joinGameID, setJoinGameID] = useLocalStorage('joinGameID');
-  const [playerName, setPlayerName] = useLocalStorage('playerName');
-  const [storedPlayerID, setPlayerID] = useLocalStorage('playerID');
-  const [hostGameID, setHostGameID] = useLocalStorage('hostGameID');
+  const [joinGameID, setJoinGameID] = useLocalStorageState('joinGameID');
+  const [playerName, setPlayerName] = useLocalStorageState('playerName');
+  const [storedPlayerID, setPlayerID] = useLocalStorageState('playerID');
+  const [hostGameID, setHostGameID] = useLocalStorageState('hostGameID');
   const [gameIDError, setGameIDError] = useState('');
   const [playerNameError, setPlayerNameError] = useState('');
   const [joinGameLoading, setJoinGameLoading] = useState(false);
