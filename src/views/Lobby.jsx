@@ -71,7 +71,7 @@ export default function Lobby() {
     if (joinGameLoading) return;
     setJoinGameLoading(true);
 
-    const gameRef = gamesRef.doc(joinGameID);
+    const gameRef = gamesRef.doc(String(joinGameID));
     const gameDoc = await gameRef.get();
     if (!gameDoc.exists) {
       setJoinGameLoading(false);
@@ -140,7 +140,7 @@ export default function Lobby() {
     // resume existing (uncompleted) game first, if applicable
     let newGameID;
     if (hostGameID) {
-      const game = await gamesRef.doc(hostGameID).get();
+      const game = await gamesRef.doc(String(hostGameID)).get();
       if (game.exists) {
         const { completed } = game.data();
         if (!completed) {
@@ -156,13 +156,13 @@ export default function Lobby() {
     if (!newGameID) {
       const findUnusedGameID = async () => {
         newGameID = `${Math.round(Math.random() * 8999) + 1000}`; // [1000, 9999]
-        const { exists } = await gamesRef.doc(newGameID).get();
+        const { exists } = await gamesRef.doc(String(newGameID)).get();
         if (exists) await findUnusedGameID();
       };
       await findUnusedGameID();
     }
     // start game
-    await gamesRef.doc(newGameID).set({
+    await gamesRef.doc(String(newGameID)).set({
       // @TODO
       timestamp: FieldValue.serverTimestamp(),
     });

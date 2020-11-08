@@ -3,7 +3,6 @@ import { useRouteMatch } from 'react-router-dom';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { useAsync } from 'react-async-hook';
 import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
 import TopBar from '../components/TopBar';
@@ -125,9 +124,7 @@ export default function Screen() {
       <AppBar color="default" position="static" style={{ paddingBottom: 16 }}>
         <ProgressIndicator style={{ marginBottom: 16 }} />
 
-        <Toolbar>
-          <Players />
-        </Toolbar>
+        <Players />
       </AppBar>
     </div>
   );

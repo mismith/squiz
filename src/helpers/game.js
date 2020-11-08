@@ -142,7 +142,7 @@ export async function endTrack(trackRef) {
 
 export function useGame() {
   const { params: { gameID } } = useRouteMatch();
-  const gameRef = firestore.collection('games').doc(gameID);
+  const gameRef = firestore.collection('games').doc(String(gameID));
   const game = useDocumentData(gameRef, null, 'id');
   return [game, gameRef];
 }

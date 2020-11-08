@@ -14,19 +14,32 @@ import {
   useLatestDocument,
   useGame,
 } from '../helpers/game';
+import { makeStyles } from '@material-ui/core';
 
-const styles = {
+const useStyles = makeStyles(theme => ({
+  root: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    padding: theme.spacing(0, 1),
+  },
   player: {
     display: 'inline-flex',
     flexDirection: 'column',
     alignItems: 'center',
-    margin: 'auto',
+    margin: theme.spacing(),
   },
   name: {
+    maxWidth: 200,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
-};
+}));
 
-export function Player({ player, onRemove, ...props }) {
+export function Player({ player, onRemove, className, ...props }) {
+  const classes = useStyles();
+
   const [{ value: game, loading: gameLoading }, gameRef] = useGame();
   const roundsRef = gameRef.collection('rounds');
   const { value: { ref: roundRef } = {}, loading: roundRefLoading } = useLatestDocument(roundsRef);
@@ -55,8 +68,8 @@ export function Player({ player, onRemove, ...props }) {
   }
   return (
     <div
+      className={`${classes.player} ${className || ''}`}
       style={{
-        ...styles.player,
         visibility: !player.id && 'hidden',
         opacity: player.inactive ? 0.5 : 1,
       }}
@@ -77,16 +90,17 @@ export function Player({ player, onRemove, ...props }) {
       <SpotifyButton
         variant={variant}
         color={color}
-        style={styles.name}
         onClick={() => onRemove?.(player)}
       >
-        {player.name}
+        <span className={classes.name}>{player.name}</span>
       </SpotifyButton>
     </div>
   );
 }
 
-export default function Players() {
+export default function Players({ className, ...props }) {
+  const classes = useStyles();
+
   const [, gameRef] = useGame();
   const playersRef = gameRef.collection('players');
   const {
@@ -107,7 +121,7 @@ export default function Players() {
     );
   }
   return (
-    <>
+    <div className={`${classes.root} ${className || ''}`} {...props}>
       {players.map(player => (
         <Player
           key={player.id}
@@ -129,6 +143,6 @@ export default function Players() {
       >
         Are you sure you want to remove <strong>{playerToRemove?.name}</strong> from the game?
       </DialogConfirm>
-    </>
+    </div>
   );
 }
