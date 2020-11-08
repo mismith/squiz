@@ -19,10 +19,11 @@ function usePlayerSwipes(gameRef, playerID) {
   const { tracksRef, track } = useTrack(roundRef);
 
   const [swipe, setSwipe] = useState(null);
+  const trackID = track?.id;
   useEffect(() => {
     // reset local swipe marker for each new track
     setSwipe(null);
-  }, [track?.id]);
+  }, [trackID]);
   async function onSwiped({ dir }) {
     if (!game?.paused && !game?.inactive && track?.id && !track?.completed && dir !== swipe) {
       // send selection to server
