@@ -4,15 +4,20 @@ import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    textAlign: 'center',
-    padding: theme.spacing(0, 2),
+    display: 'flex',
+    alignItems: 'center',
+    maxWidth: '100%',
+    textAlign: 'right',
+    padding: theme.spacing(1, 2),
     margin: 'auto',
   },
   name: {
+    maxWidth: 44,
     fontSize: 10,
+    lineHeight: 1,
+    marginRight: theme.spacing(2),
   },
   value: {
-    marginBottom: -theme.spacing(),
   },
 }));
 
@@ -21,11 +26,11 @@ export default function GameInfo({ name, value, color = undefined }) {
 
   return (
     <div className={classes.root}>
-      <Typography variant="h4" color={color} className={classes.value}>
-        {value || <>&nbsp;</>}
-      </Typography>
       <Typography variant="overline" color="textSecondary" className={classes.name}>
         {name || <>&nbsp;</>}
+      </Typography>
+      <Typography variant="h4" color={color} noWrap className={classes.value}>
+        {value || <>&nbsp;</>}
       </Typography>
     </div>
   );
