@@ -12,6 +12,7 @@ import {
   getTrackPointsForPlayer,
   useTrack,
   useLatestDocument,
+  useGame,
 } from '../helpers/game';
 
 const styles = {
@@ -25,8 +26,8 @@ const styles = {
   },
 };
 
-export function Player({ player, gameRef, onRemove, ...props }) {
-  const { value: game, loading: gameLoading } = useDocumentData(gameRef);
+export function Player({ player, onRemove, ...props }) {
+  const [{ value: game, loading: gameLoading }, gameRef] = useGame();
   const roundsRef = gameRef.collection('rounds');
   const { value: { ref: roundRef } = {}, loading: roundRefLoading } = useLatestDocument(roundsRef);
   const { value: round, loading: roundLoading } = useDocumentData(roundRef, null, 'id');
@@ -85,7 +86,8 @@ export function Player({ player, gameRef, onRemove, ...props }) {
   );
 }
 
-export default function Players({ gameRef }) {
+export default function Players() {
+  const [, gameRef] = useGame();
   const playersRef = gameRef.collection('players');
   const {
     value: players = [],
@@ -109,7 +111,6 @@ export default function Players({ gameRef }) {
       {players.map(player => (
         <Player
           key={player.id}
-          gameRef={gameRef}
           player={player}
           onRemove={player => setPlayerToRemove(player)}
         />

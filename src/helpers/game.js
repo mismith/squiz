@@ -1,8 +1,9 @@
+import { useRouteMatch } from 'react-router-dom';
 import { useCollection, useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import weightedRandom from 'weighted-random';
 
-import { FieldValue } from './firebase';
-import * as audio from '../helpers/audio';
+import { firestore, FieldValue } from './firebase';
+import * as audio from './audio';
 
 export const ROUNDS_LIMIT = 5;
 export const TRACKS_LIMIT = 8;
@@ -137,4 +138,11 @@ export async function endTrack(trackRef) {
   return trackRef.set({
     completed: FieldValue.serverTimestamp(),
   }, { merge: true });
+}
+
+export function useGame() {
+  const { params: { gameID } } = useRouteMatch();
+  const gameRef = firestore.collection('games').doc(gameID);
+  const game = useDocumentData(gameRef, null, 'id');
+  return [game, gameRef];
 }

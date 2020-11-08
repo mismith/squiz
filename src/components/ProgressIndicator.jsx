@@ -6,6 +6,7 @@ import {
   ROUNDS_LIMIT,
   TRACKS_LIMIT,
   useLatestDocument,
+  useGame,
 } from '../helpers/game';
 import { useProgress } from '../helpers/audio';
 
@@ -42,9 +43,10 @@ function ProgressStep() {
   );
 }
 
-export default function ProgressIndicator({ gameRef, ...props }) {
+export default function ProgressIndicator(props) {
   const classes = useStyles();
 
+  const [, gameRef] = useGame();
   const roundsNum = Array.apply(null, { length: ROUNDS_LIMIT }).map((v, i) => i + 1);
   const tracksNum = Array.apply(null, { length: TRACKS_LIMIT }).map((v, i) => i + 1);
   const roundsRef = gameRef.collection('rounds');

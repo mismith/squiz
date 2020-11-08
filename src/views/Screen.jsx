@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRouteMatch } from 'react-router-dom';
-import { useDocumentData, useCollectionData } from 'react-firebase-hooks/firestore';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { useAsync } from 'react-async-hook';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -14,8 +14,8 @@ import Players from '../components/Players';
 import Loader from '../components/Loader';
 import ProgressIndicator from '../components/ProgressIndicator';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
-import { firestore } from '../helpers/firebase';
 import { loadCategories, loadCategoryPlaylists } from '../helpers/spotify';
+import { useGame } from '../helpers/game';
 
 const styles = {
   container: {
@@ -41,13 +41,10 @@ const styles = {
   },
 };
 
-export function Content({ gameRef }) {
+export function Content() {
+  const [{ value: game, loading: gameLoading }] = useGame();
   const { params: { categoryID, playlistID } } = useRouteMatch();
 
-  const {
-    value: game,
-    loading: gameLoading,
-  } = useDocumentData(gameRef, null, 'id');
   const {
     result: categories,
     loading: categoriesLoading,
@@ -69,7 +66,7 @@ export function Content({ gameRef }) {
         ? (
           <div style={styles.content}>
             {game?.completed ? (
-              <GameOver gameRef={gameRef} />
+              <GameOver />
             ) : (
               <>
                 {!categoryID && (
@@ -94,7 +91,8 @@ export function Content({ gameRef }) {
   );
 }
 
-export function GameOver({ gameRef, ...props }) {
+export function GameOver(props) {
+  const [, gameRef] = useGame();
   const playersRef = gameRef.collection('players').orderBy('score', 'desc');
   const { value: [winner] = [] } = useCollectionData(playersRef, null, 'id');
 
@@ -114,8 +112,7 @@ export function GameOver({ gameRef, ...props }) {
 }
 
 export default function Screen() {
-  const { params: { gameID } } = useRouteMatch();
-  const gameRef = firestore.collection('games').doc(gameID);
+  const [, gameRef] = useGame();
 
   useConnectivityStatus(gameRef);
 
@@ -123,13 +120,13 @@ export default function Screen() {
     <div style={styles.container}>
       <TopBar />
 
-      <Content gameRef={gameRef} />
+      <Content />
   
       <AppBar color="default" position="static" style={{ paddingBottom: 16 }}>
-        <ProgressIndicator gameRef={gameRef} style={{ marginBottom: 16 }} />
+        <ProgressIndicator style={{ marginBottom: 16 }} />
 
         <Toolbar>
-          <Players gameRef={gameRef} />
+          <Players />
         </Toolbar>
       </AppBar>
     </div>

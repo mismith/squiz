@@ -10,12 +10,11 @@ import Home from '@material-ui/icons/Home';
 
 import GameInfo from '../components/GameInfo';
 import DialogConfirm from '../components/DialogConfirm';
-import { firestore } from '../helpers/firebase';
-import { endGame } from '../helpers/game';
+import { endGame, useGame } from '../helpers/game';
 
 export default function TopBar(props) {
   const { params: { gameID, categoryID, playlistID } } = useRouteMatch();
-  const gameRef = firestore.collection('games').doc(gameID);
+  const [, gameRef] = useGame();
 
   let to = '';
   if (gameID && categoryID) {

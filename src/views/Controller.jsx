@@ -8,12 +8,12 @@ import Typography from '@material-ui/core/Typography';
 
 import GameInfo from '../components/GameInfo';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
-import { firestore, FieldValue } from '../helpers/firebase';
-import { useLatestDocument, useTrack } from '../helpers/game';
+import { FieldValue } from '../helpers/firebase';
+import { useGame, useLatestDocument, useTrack } from '../helpers/game';
 import { directions } from '../helpers/directions';
 
-function usePlayerSwipes(gameRef, playerID) {
-  const { value: game } = useDocumentData(gameRef, null, 'id');
+function usePlayerSwipes(playerID) {
+  const [{ value: game }, gameRef] = useGame();
   const roundsRef = gameRef.collection('rounds');
   const { value: { ref: roundRef } = {} } = useLatestDocument(roundsRef);
   const { tracksRef, track } = useTrack(roundRef);
@@ -97,12 +97,12 @@ const styles = {
 
 export default function Controller() {
   const { params: { gameID, playerID } } = useRouteMatch();
-  const gameRef = firestore.collection('games').doc(gameID);
+  const [, gameRef] = useGame();
   const playerRef = gameRef.collection('players').doc(playerID);
   const { value: player } = useDocumentData(playerRef, null, 'id');
 
   useConnectivityStatus(playerRef);
-  const { swipe, handlers } = usePlayerSwipes(gameRef, playerID);
+  const { swipe, handlers } = usePlayerSwipes(playerID);
 
   return (
     <div style={styles.controller} {...handlers}>

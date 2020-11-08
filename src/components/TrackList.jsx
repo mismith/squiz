@@ -15,7 +15,7 @@ import TileButton from './TileButton';
 import SpotifyButton from './SpotifyButton';
 import Choices from './Choices';
 import Loader from './Loader';
-import { firestore, FieldValue } from '../helpers/firebase';
+import { FieldValue } from '../helpers/firebase';
 import {
   loadCategory,
   loadPlaylist,
@@ -37,6 +37,7 @@ import {
   endTrack,
   resumeGame,
   pauseGame,
+  useGame,
 } from '../helpers/game';
 import * as audio from '../helpers/audio';
 
@@ -78,9 +79,8 @@ const useStyles = makeStyles(theme => ({
 
 export default function TrackList() {
   const classes = useStyles();
-  const { params: { gameID, categoryID, playlistID, } } = useRouteMatch();
-  const gameRef = firestore.collection('games').doc(gameID);
 
+  const { params: { categoryID, playlistID, } } = useRouteMatch();
   const {
     result: category,
     loading: categoryLoading,
@@ -96,7 +96,7 @@ export default function TrackList() {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [usedTrackIDs, setUsedTrackIDs] = useLocalStorageState('usedTracks', '');
 
-  const { value: game, loading: gameLoading } = useDocumentData(gameRef, null, 'id');
+  const [{ value: game, loading: gameLoading }, gameRef] = useGame();
   const playersRef = gameRef.collection('players');
   const { value: players, loading: playersLoading } = useCollectionData(playersRef);
   const roundsRef = gameRef.collection('rounds');
