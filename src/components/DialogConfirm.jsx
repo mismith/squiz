@@ -6,25 +6,31 @@ import DialogActions from '@material-ui/core/DialogActions';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
-export default ({
+export default function DialogConfirm({
   value,
   title = 'Confirm',
-  body = 'Are you sure?',
+  body = undefined,
+  children = 'Are you sure?',
   onCancel = undefined,
   onConfirm = undefined,
   cancelLabel = 'No',
   confirmLabel = 'yes',
+  className,
   ...props
-}) => {
+}) {
   return (
-    <Dialog onClose={onCancel} {...props}>
+    <Dialog onClose={onCancel} PaperProps={{ className }} {...props}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <Typography>{body}</Typography>
+        <Typography component="div">{body || children}</Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>{cancelLabel}</Button>
-        <Button color="primary" onClick={onConfirm}>{confirmLabel}</Button>
+        {Boolean(cancelLabel) && (
+          <Button onClick={onCancel}>{cancelLabel}</Button>
+        )}
+        {Boolean(confirmLabel) && (
+          <Button color="primary" onClick={onConfirm}>{confirmLabel}</Button>
+        )}
       </DialogActions>
     </Dialog>
   );

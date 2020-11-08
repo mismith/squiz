@@ -123,10 +123,11 @@ export default function Players({ gameRef }) {
       <DialogConfirm
         open={Boolean(playerToRemove)}
         title="Remove player?"
-        body={<>Are you sure you want to remove <strong>{playerToRemove?.name}</strong> from the game?</>}
         onCancel={handleClose}
         onConfirm={handleRemove}
-      />
+      >
+        Are you sure you want to remove <strong>{playerToRemove?.name}</strong> from the game?
+      </DialogConfirm>
     </>
   );
 }
