@@ -125,8 +125,8 @@ export default function Players({ className, ...props }) {
         />
       ))}
       {!players.length && (
-        <Typography variant="h3" color="secondary" style={{ margin: 'auto' }}>
-          Join Game to Play
+        <Typography variant="overline" style={{ padding: 16, margin: 'auto' }}>
+          Join the game on your device to start
         </Typography>
       )}
 

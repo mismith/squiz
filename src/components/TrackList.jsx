@@ -124,6 +124,8 @@ export default function TrackList() {
   const isPlaylistInProgress = isPlaylistThisRounds && !round?.completed;
   const isPlaylistLastCompleted = isPlaylistThisRounds && round?.completed;
   const isPlaylistAlreadyPlayed = round && rounds?.some(r => r.playlistID === playlistID);
+  const hasEnoughPlayers = players?.length > 0;
+  const hasTracksRemaining = unpickedTracks?.length > 0;
 
   const nextTrack = async () => {
     const pickedTrack = pickRandomTrack(unpickedTracks);
@@ -162,7 +164,7 @@ export default function TrackList() {
   const next = async () => {
     audio.stop();
 
-    if (pickedTracks?.length >= TRACKS_LIMIT || !unpickedTracks?.length) {
+    if (pickedTracks?.length >= TRACKS_LIMIT || !hasTracksRemaining) {
       if (!round?.completed) {
         // @TODO: alert if track run out early
         await endRound(roundRef);
@@ -315,7 +317,7 @@ export default function TrackList() {
           icon={<PlayArrowIcon />}
           color={isStarting ? 'secondary' : 'primary'}
           style={{ margin: 16 }}
-          disabled={!players?.length || Boolean(!unpickedTracks?.length && round?.completed)}
+          disabled={!hasEnoughPlayers || !hasTracksRemaining || Boolean(game?.completed)}
           onClick={handleNextClick}
         >
           {isStarting ? (
@@ -324,6 +326,16 @@ export default function TrackList() {
             isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`
           )}
         </SpotifyButton>
+        {!hasEnoughPlayers && (
+          <Typography variant="caption" color="error">
+            At least one player needed
+          </Typography>
+        )}
+        {!hasTracksRemaining && (
+          <Typography variant="caption" color="error">
+            No unplayed tracks remaining
+          </Typography>
+        )}
       </Card>
     </div>
   );
