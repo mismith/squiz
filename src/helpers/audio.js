@@ -9,7 +9,7 @@ export const SOUNDS = {
 };
 export let player;
 let timeout;
-const timer = { start: 0 };
+const timer = { progress: 0 };
 
 export function setTimeout(...args) {
   if (args.length) {
@@ -18,8 +18,41 @@ export function setTimeout(...args) {
   return timeout;
 }
 
-export function stop(clearTimeout = true) {
-  timer.start = 0;
+export function load(src) {
+  return new Promise((resolve, reject) => {
+    if (player) player.pause();
+
+    const newPlayer = new Audio(src);
+    player = newPlayer;
+    newPlayer.addEventListener('loadeddata', () => {
+      if (player === newPlayer) {
+        resolve(newPlayer);
+      }
+    });
+    newPlayer.addEventListener('error', (err) => {
+      if (player === newPlayer) {
+        reject(err);
+      }
+    });
+  });
+}
+
+export async function play(src = undefined, triggerProgress = true) {
+  if (triggerProgress) {
+    timer.progress = Date.now();
+  }
+  if (src) {
+    await load(src);
+  }
+  if (player) {
+    player.play();
+  }
+}
+
+export function stop(clearTimeout = true, triggerProgress = true) {
+  if (triggerProgress && timer.progress) {
+    timer.progress = 0;
+  }
   if (player) {
     player.pause();
     player = null;
@@ -30,43 +63,24 @@ export function stop(clearTimeout = true) {
   }
 }
 
-export function load(src) {
-  return new Promise((resolve, reject) => {
-    stop(false);
-
-    const audioPlayer = new Audio(src);
-    player = audioPlayer;
-    audioPlayer.addEventListener('loadeddata', () => {
-      if (player === audioPlayer) {
-        resolve(audioPlayer);
-      }
-    });
-    audioPlayer.addEventListener('error', (err) => {
-      if (player === audioPlayer) {
-        reject(err);
-      }
-    });
-  });
-}
-
-export async function play(src = undefined) {
-  if (src) await load(src);
-  if (player) player.play();
-  timer.start = Date.now();
+export function isPlaying() {
+  return timer.progress > 0;
 }
 
 export function useProgress(total = CHOICES_TIMEOUT) {
   const [progress, setProgress] = useState(0);
   const ref = useRef();
   const animate = useCallback(() => {
-    if (timer.start) {
-      const elapsed = Date.now() - timer.start;
+    if (timer.progress) {
+      const elapsed = Date.now() - timer.progress;
       setProgress(Math.round(elapsed / total * 100));
+    } else {
+      setProgress(0);
     }
     ref.current = window.requestAnimationFrame(animate);
   }, [total]);
   useEffect(() => {
-    ref.current = window.requestAnimationFrame(animate);
+    animate();
     return () => window.cancelAnimationFrame(ref.current);
   }, [animate]);
 

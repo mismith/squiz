@@ -160,6 +160,7 @@ export default function TrackList() {
       ].map(trimTrack)),
       timestamp: FieldValue.serverTimestamp(),
     };
+    // @TODO: avoid/prevent duplicates, and maybe also avoid leaks by trimming this?
     setUsedTrackIDs(`${usedTrackIDs ? `${usedTrackIDs},` : ''}${pickedTrack.id}`);
     await trackRoundRef.collection('tracks').doc(pickedTrack.id).set(newTrack);
   };
@@ -190,11 +191,13 @@ export default function TrackList() {
 
     // wait for a bit before starting to give the game master time to get their device
     setStarting(true);
-    audio.play(audio.SOUNDS.START);
-    await new Promise(r => setTimeout(r, startingDuration));
+    await audio.play(audio.SOUNDS.START, false);
+    await new Promise((resolve) => {
+      audio.setTimeout(resolve, startingDuration);
+    });
 
+    // unpause/resume
     if (game.paused) {
-      // unpause/resume
       await resumeGame(gameRef);
     }
 

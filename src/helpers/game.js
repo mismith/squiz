@@ -133,7 +133,7 @@ export async function endRound(roundRef) {
   }, { merge: true });
 }
 export async function endTrack(trackRef) {
-  audio.stop();
+  audio.stop(undefined, false); // don't clear progress so as to avoid 'flashing' bar
 
   return trackRef.set({
     completed: FieldValue.serverTimestamp(),
