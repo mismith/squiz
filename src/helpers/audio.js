@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+import START from '../sounds/start.mp3';
 import { CHOICES_TIMEOUT } from './game';
 
+export const SOUNDS = {
+  // @TODO: add credit for zapslpat.com: https://www.zapsplat.com/license-type/standard-license/
+  START,
+};
 export let player;
 let timeout;
 const timer = { start: 0 };

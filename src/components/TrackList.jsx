@@ -48,7 +48,7 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     flex: 'auto',
     position: 'relative',
-    transition: ({ startingDuration }) => `opacity ${startingDuration}ms ease-in`,
+    transition: ({ startingDuration: ms }) => `opacity ${ms}ms cubic-bezier(0.55, 0, 0, 1)`,
   },
   starting: {
     opacity: 0,
@@ -82,7 +82,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function TrackList() {
-  const startingDuration = 3 * 1000;
+  const startingDuration = 4 * 1000;
   const classes = useStyles({ startingDuration });
 
   const { params: { categoryID, playlistID, } } = useRouteMatch();
@@ -188,6 +188,7 @@ export default function TrackList() {
 
     // wait for a bit before starting to give the game master time to get their device
     setStarting(true);
+    audio.play(audio.SOUNDS.START);
     await new Promise(r => setTimeout(r, startingDuration));
 
     if (game.paused) {
@@ -314,7 +315,7 @@ export default function TrackList() {
 
         
         <SpotifyButton
-          icon={<PlayArrowIcon />}
+          icon={isStarting ? null : <PlayArrowIcon />}
           color={isStarting ? 'secondary' : 'primary'}
           style={{ margin: 16 }}
           disabled={!hasEnoughPlayers || !hasTracksRemaining || Boolean(game?.completed)}
