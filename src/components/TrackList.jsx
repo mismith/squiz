@@ -133,8 +133,10 @@ export default function TrackList() {
     if (!(await audio.load(pickedTrack.preview_url))) return nextTrack();
 
     const decoys = await loadDecoys(pickedTrack);
+    if (decoys.length < 3) return nextTrack();
+
     const decoysUsed = [];
-    while (decoysUsed.length < 3 && decoys.length) {
+    while (decoysUsed.length < 3) {
       const decoy = pickRandomTrack(decoys);
       const index = decoys.indexOf(decoy);
       decoysUsed.push(...decoys.splice(index, 1));
