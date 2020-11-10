@@ -40,6 +40,7 @@ import {
   useGame,
 } from '../helpers/game';
 import * as audio from '../helpers/audio';
+import useHasInteracted from '../hooks/useHasInteracted';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -85,6 +86,8 @@ export default function TrackList() {
   const startingDuration = 4 * 1000;
   const classes = useStyles({ startingDuration });
 
+  const hasInteracted = useHasInteracted();
+
   const { params: { categoryID, playlistID, } } = useRouteMatch();
   const {
     result: category,
@@ -98,7 +101,6 @@ export default function TrackList() {
     result: tracks,
     loading: tracksLoading,
   } = useAsync(loadPlaylistTracks, [playlistID]);
-  const [hasInteracted, setHasInteracted] = useState(false);
   const [usedTrackIDs, setUsedTrackIDs] = useLocalStorageState('usedTracks', '');
   const [isStarting, setStarting] = useState(false);
 
@@ -215,13 +217,6 @@ export default function TrackList() {
     }
     setStarting(false);
   };
-  const handleClick = () => {
-    // ensure audio doesn't get blocked because of not being user-interction-driven
-    // NB: this goes last since the state change triggers UI updates
-    if (!hasInteracted) {
-      setHasInteracted(true);
-    }
-  };
 
   // stop audio when leaving page
   useEffect(() => {
@@ -282,7 +277,7 @@ export default function TrackList() {
     );
   }
   return (
-    <div className={`${classes.root} ${isStarting ? classes.starting : ''}`} onClick={handleClick}>
+    <div className={`${classes.root} ${isStarting ? classes.starting : ''}`}>
       <TileGrid className={classes.bg}>
         {tracks && tracks.map(choice =>
           <TileButton

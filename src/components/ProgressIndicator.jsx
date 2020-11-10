@@ -2,6 +2,7 @@ import React from 'react';
 import { useCollection, useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
 import TileButton from './TileButton';
@@ -11,7 +12,7 @@ import {
   useGame,
 } from '../helpers/game';
 import * as audio from '../helpers/audio';
-import { Typography } from '@material-ui/core';
+import useHasInteracted from '../hooks/useHasInteracted';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -80,6 +81,8 @@ function ChoicePreview({ choice, ...props }) {
 function TrackProgress({ tracks, j, ...props }) {
   const classes = useStyles();
 
+  const hasInteracted = useHasInteracted();
+
   const track = tracks?.[j - 1];
   const choice = track?.choices?.find(({ id }) => id === track?.id);
   const isActive = j < tracks?.length || !!track?.completed;
@@ -89,18 +92,17 @@ function TrackProgress({ tracks, j, ...props }) {
   const isInProgress = !game?.paused && j === tracks?.length;
   const width = `${isActive ? 100 : (isInProgress ? progress : 0)}%`;
 
-  // @TODO: fix/avoid flash of 0% when audio.stop()s before track.completed's
-
   return (
     <Tooltip
       title={isActive ? <ChoicePreview choice={choice} /> : ''}
       interactive
       placement="top"
+      {...props}
     >
       <div
         className={classes.wrapper}
-        onMouseEnter={() => isActive && !audio.isPlaying() && audio.play(track?.src, false)}
-        onMouseLeave={() => isActive && !audio.isPlaying() && audio.stop(false, false)}
+        onMouseEnter={() => isActive && hasInteracted && !audio.isPlaying() && audio.play(track?.src, false)}
+        onMouseLeave={() => isActive && hasInteracted && !audio.isPlaying() && audio.stop(false, false)}
       >
         <div className={`${classes.track} ${isActive ? 'active' : ''}`}>
           <div className={classes.step} style={{ width }} />
