@@ -1,13 +1,17 @@
 import React from 'react';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import Typography from '@material-ui/core/Typography';
+import Replay from '@material-ui/icons/Replay';
 
-import { useGame } from '../helpers/game';
+import SpotifyButton from './SpotifyButton';
+import { useGame, restartGame } from '../helpers/game';
 
 export default function GameOver(props) {
   const [, gameRef] = useGame();
   const playersRef = gameRef.collection('players').orderBy('score', 'desc');
   const { value: [winner] = [] } = useCollectionData(playersRef, null, 'id');
+
+  const handleRestart = () => restartGame(gameRef);
 
   return (
     <Typography
@@ -20,6 +24,15 @@ export default function GameOver(props) {
       {winner ? `${winner.name} wins!` : (
         <div style={{ fontVariant: 'all-small-caps' }}>Game Over</div>
       )}
+
+      <footer>
+        <SpotifyButton
+          icon={<Replay />}
+          onClick={handleRestart}
+        >
+          Play Again
+        </SpotifyButton>
+      </footer>
     </Typography>
   );
 }

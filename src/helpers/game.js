@@ -120,6 +120,26 @@ export async function newGame(gamesRef, gameID) {
   const gameRef = gamesRef.doc(String(gameID));
   return startGame(gameRef);
 }
+export async function restartGame(gameRef) {
+  await Promise.all([
+    (async () => {
+      // remove rounds
+      const roundsRef = gameRef.collection('rounds');
+      const { docs: rounds } = await roundsRef.get();
+      return Promise.all(rounds.map(({ id }) => roundsRef.doc(id).delete()));
+    })(),
+    (async () => {
+      // reset scores
+      const playersRef = gameRef.collection('players');
+      const { docs: players } = await playersRef.get();
+      return Promise.all(players.map(({ id }) => playersRef.doc(id).set({
+        score: FieldValue.delete(),
+      }, { merge: true })));
+    })(),
+  ]);
+
+  return startGame(gameRef);
+}
 export async function pauseGame(gameRef) {
   return gameRef.set({
     paused: FieldValue.serverTimestamp(),
