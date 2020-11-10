@@ -2,12 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
 import useForm from 'react-hook-form'
 import useLocalStorageState from 'use-local-storage-state';
-import { useAsync } from 'react-async-hook';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import { makeStyles } from '@material-ui/core/styles';
 import Clear from '@material-ui/icons/Clear';
 import Shuffle from '@material-ui/icons/Shuffle';
 
@@ -16,29 +16,8 @@ import SpotifyLoginButton from '../components/SpotifyLoginButton';
 import About from '../components/About';
 import { firestore, FieldValue } from '../helpers/firebase';
 import { login, retrieveAccessToken } from '../helpers/spotify';
-import { makeStyles } from '@material-ui/core';
 import { generateGameID, newGame } from '../helpers/game';
-
-function useRandomName() {
-  const [remainingRandomNames, setRemainingRandomNames] = useState([]);
-  useAsync(async () => {
-    if (!remainingRandomNames.length) {
-      const url = 'http://names.drycodes.com/25?nameOptions=funnyWords';
-      const names = await (await fetch(`https://cors-anywhere.herokuapp.com/${url}`)).json();
-      setRemainingRandomNames(names);
-    }
-  }, [remainingRandomNames.length]);
-
-  const getRandomName = () => {
-    const nextRandomName = remainingRandomNames.splice(0, 1);
-    setRemainingRandomNames(remainingRandomNames);
-    return nextRandomName;
-  };
-
-  getRandomName.remaining = remainingRandomNames;
-
-  return getRandomName;
-}
+import useRandomName from '../hooks/useRandomName';
 
 const useStyles = makeStyles(theme => ({
   root: {
