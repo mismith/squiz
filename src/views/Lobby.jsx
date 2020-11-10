@@ -17,6 +17,7 @@ import About from '../components/About';
 import { firestore, FieldValue } from '../helpers/firebase';
 import { login, retrieveAccessToken } from '../helpers/spotify';
 import { makeStyles } from '@material-ui/core';
+import { generateGameID, newGame } from '../helpers/game';
 
 function useRandomName() {
   const [remainingRandomNames, setRemainingRandomNames] = useState([]);
@@ -155,17 +156,14 @@ export default function Lobby() {
     // otherwise, find an unused gameID
     if (!newGameID) {
       const findUnusedGameID = async () => {
-        newGameID = `${Math.round(Math.random() * 8999) + 1000}`; // [1000, 9999]
+        newGameID = generateGameID();
         const { exists } = await gamesRef.doc(String(newGameID)).get();
         if (exists) await findUnusedGameID();
       };
       await findUnusedGameID();
     }
     // start game
-    await gamesRef.doc(String(newGameID)).set({
-      // @TODO
-      timestamp: FieldValue.serverTimestamp(),
-    });
+    await newGame(gamesRef, newGameID);
     setHostGameID(newGameID);
     setHostGameLoading(false);
     history.push(`/games/${newGameID}`);

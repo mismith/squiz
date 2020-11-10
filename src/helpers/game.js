@@ -107,6 +107,19 @@ export async function scorePlayerResponses(gameRef, track) {
   }));
 }
 
+export function generateGameID() {
+  return `${Math.round(Math.random() * 8999) + 1000}`; // [1000, 9999]
+}
+
+export async function startGame(gameRef) {
+  return gameRef.set({
+    timestamp: FieldValue.serverTimestamp(),
+  });
+}
+export async function newGame(gamesRef, gameID) {
+  const gameRef = gamesRef.doc(String(gameID));
+  return startGame(gameRef);
+}
 export async function pauseGame(gameRef) {
   return gameRef.set({
     paused: FieldValue.serverTimestamp(),
