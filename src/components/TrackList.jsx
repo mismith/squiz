@@ -132,7 +132,7 @@ export default function TrackList() {
   const nextTrack = async () => {
     const pickedTrack = pickRandomTrack(unpickedTracks);
     if (!pickedTrack) throw new Error('no more tracks'); // @TODO
-    if (!(await audio.load(pickedTrack.preview_url))) return nextTrack();
+    if (!(await audio.load(pickedTrack?.preview_url))) return nextTrack();
 
     const decoys = await loadDecoys(pickedTrack);
     if (decoys.length < 3) return nextTrack();

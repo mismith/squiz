@@ -14,7 +14,7 @@ export const RESULTS_TIMEOUT = 3 * 1000;
 export const getRandomID = (items = []) => {
   const randomIndex = Math.floor(Math.random() * items.length);
   const randomItem = items[randomIndex];
-  return randomItem && randomItem.id;
+  return randomItem?.id;
 };
 export function pickRandomTrack(tracks = []) {
   const weights = tracks.map(({ popularity }, index) => {
@@ -52,6 +52,7 @@ export function useTrack(roundRef, possibleTracks = [], usedTrackIDs = []) {
     .map(id => possibleTracks.find(track => track.id === id))
     .filter(Boolean);
   const unpickedTracks = possibleTracks
+    .filter(({ preview_url }) => preview_url)
     .filter(({ id }) => !pickedTrackIDs.includes(id))
     .filter(({ id }) => !usedTrackIDs.includes(id));
 
