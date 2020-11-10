@@ -127,7 +127,7 @@ export default function TrackList() {
   const isPlaylistLastCompleted = isPlaylistThisRounds && round?.completed;
   const isPlaylistAlreadyPlayed = round && rounds?.some(r => r.playlistID === playlistID);
   const hasEnoughPlayers = players?.length > 0;
-  const hasTracksRemaining = unpickedTracks?.length > 0;
+  const hasEnoughTracksRemaining = unpickedTracks?.length >= TRACKS_LIMIT - pickedTracks?.length;
 
   const nextTrack = async () => {
     const pickedTrack = pickRandomTrack(unpickedTracks);
@@ -169,7 +169,7 @@ export default function TrackList() {
   const next = async () => {
     audio.stop();
 
-    if (pickedTracks?.length >= TRACKS_LIMIT || !hasTracksRemaining) {
+    if (pickedTracks?.length >= TRACKS_LIMIT || !hasEnoughTracksRemaining) {
       if (!round?.completed) {
         // @TODO: alert if track run out early
         await endRound(roundRef);
@@ -319,7 +319,7 @@ export default function TrackList() {
           icon={isStarting ? null : <PlayArrowIcon />}
           color={isStarting ? 'secondary' : 'primary'}
           style={{ margin: 16 }}
-          disabled={!hasEnoughPlayers || !hasTracksRemaining || Boolean(game?.completed)}
+          disabled={!hasEnoughPlayers || !hasEnoughTracksRemaining || Boolean(game?.completed)}
           onClick={handleNextClick}
         >
           {isStarting ? (
@@ -333,9 +333,9 @@ export default function TrackList() {
             At least one player needed
           </Typography>
         )}
-        {!hasTracksRemaining && (
+        {!hasEnoughTracksRemaining && (
           <Typography variant="caption" color="error">
-            No unplayed tracks remaining
+            Not enough unplayed tracks remaining
           </Typography>
         )}
       </Card>
