@@ -14,14 +14,16 @@ import { endGame, useGame } from '../helpers/game';
 
 export default function TopBar(props) {
   const { params: { gameID, categoryID, playlistID } } = useRouteMatch();
-  const [, gameRef] = useGame();
+  const [{ value: game }, gameRef] = useGame();
 
   let to = '';
-  if (gameID && categoryID) {
-    to += `/games/${gameID}`;
-  }
-  if (categoryID && playlistID) {
-    to += `/${categoryID}`;
+  if (!game?.completed) {
+    if (gameID && categoryID) {
+      to += `/games/${gameID}`;
+    }
+    if (categoryID && playlistID) {
+      to += `/${categoryID}`;
+    }
   }
 
   const history = useHistory();
