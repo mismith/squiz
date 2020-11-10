@@ -176,6 +176,7 @@ export default function TrackList() {
           // @TODO: make this non-instant
           if (!game?.completed) {
             await endGame(gameRef);
+            audio.playSound(audio.SOUNDS.END);
           }
         }
         return;

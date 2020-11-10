@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import START from '../sounds/start.mp3';
+import END from '../sounds/end.mp3';
 import { CHOICES_TIMEOUT } from './game';
 
 export const SOUNDS = {
   // @TODO: add credit for zapslpat.com: https://www.zapsplat.com/license-type/standard-license/
   START,
+  END,
 };
+export function playSound(src) {
+  const sound = new Audio(src);
+  sound.addEventListener('loadeddata', () => sound.play());
+}
+
 export let player;
 let timeout;
 const timer = { progress: 0 };
@@ -23,7 +30,6 @@ export function load(src) {
     if (player) player.pause();
 
     const newPlayer = new Audio(src);
-    player = newPlayer;
     newPlayer.addEventListener('loadeddata', () => {
       if (player === newPlayer) {
         resolve(newPlayer);
@@ -34,6 +40,7 @@ export function load(src) {
         reject(err);
       }
     });
+    player = newPlayer;
   });
 }
 

@@ -38,11 +38,11 @@ export function useLatestDocument(ref) {
 }
 
 export function useTrack(roundRef, possibleTracks = [], usedTrackIDs = []) {
-  const tracksRef = roundRef && roundRef.collection('tracks');
+  const tracksRef = roundRef?.collection('tracks');
   const {
     value: tracks = [],
     loading: tracksLoading,
-  } = useCollectionData(tracksRef && tracksRef.orderBy('timestamp'), null, 'id');
+  } = useCollectionData(tracksRef?.orderBy('timestamp'), null, 'id');
 
   const { value: { ref: trackRef } = {}, loading: trackRefLoading } = useLatestDocument(tracksRef);
   const { value: track, loading: trackLoading } = useDocumentData(trackRef, null, 'id');
@@ -50,7 +50,7 @@ export function useTrack(roundRef, possibleTracks = [], usedTrackIDs = []) {
   const pickedTrackIDs = tracks.map(({ id }) => id);
   const pickedTracks = pickedTrackIDs
     .map(id => possibleTracks.find(track => track.id === id))
-    .filter(v => v);
+    .filter(Boolean);
   const unpickedTracks = possibleTracks
     .filter(({ id }) => !pickedTrackIDs.includes(id))
     .filter(({ id }) => !usedTrackIDs.includes(id));
@@ -119,15 +119,11 @@ export async function resumeGame(gameRef) {
 }
 
 export async function endGame(gameRef) {
-  audio.stop();
-
   return gameRef.set({
     completed: FieldValue.serverTimestamp(),
   }, { merge: true });
 }
 export async function endRound(roundRef) {
-  audio.stop();
-
   return roundRef.set({
     completed: FieldValue.serverTimestamp(),
   }, { merge: true });
