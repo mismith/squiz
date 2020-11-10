@@ -1,6 +1,5 @@
 import React from 'react';
 import { useRouteMatch } from 'react-router-dom';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
 import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
 
@@ -10,6 +9,7 @@ import PlaylistList from '../components/PlaylistList';
 import TrackList from '../components/TrackList';
 import Players from '../components/Players';
 import Loader from '../components/Loader';
+import GameOver from '../components/GameOver';
 import ProgressIndicator from '../components/ProgressIndicator';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
 import { useGame } from '../helpers/game';
@@ -75,26 +75,6 @@ export function Content() {
         )
       }
     </>
-  );
-}
-
-export function GameOver(props) {
-  const [, gameRef] = useGame();
-  const playersRef = gameRef.collection('players').orderBy('score', 'desc');
-  const { value: [winner] = [] } = useCollectionData(playersRef, null, 'id');
-
-  return (
-    <Typography
-      variant="h2"
-      color="secondary"
-      style={{ textAlign: 'center', margin: 'auto' }}
-      {...props}
-    >
-      <span role="img" aria-label="Woohoo!">🎉🎉🎉</span><br />
-      {winner ? `${winner.name} wins!` : (
-        <span style={{ fontVariant: 'all-small-caps' }}>Game Over</span>
-      )}
-    </Typography>
   );
 }
 
