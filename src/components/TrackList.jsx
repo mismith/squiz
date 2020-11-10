@@ -48,6 +48,10 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     flex: 'auto',
     position: 'relative',
+    transition: ({ startingDuration }) => `opacity ${startingDuration}ms ease-in`,
+  },
+  starting: {
+    opacity: 0,
   },
   bg: {
     position: 'absolute',
@@ -78,7 +82,8 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function TrackList() {
-  const classes = useStyles();
+  const startingDuration = 3 * 1000;
+  const classes = useStyles({ startingDuration });
 
   const { params: { categoryID, playlistID, } } = useRouteMatch();
   const {
@@ -95,6 +100,7 @@ export default function TrackList() {
   } = useAsync(loadPlaylistTracks, [playlistID]);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [usedTrackIDs, setUsedTrackIDs] = useLocalStorageState('usedTracks', '');
+  const [isStarting, setStarting] = useState(false);
 
   const [{ value: game, loading: gameLoading }, gameRef] = useGame();
   const playersRef = gameRef.collection('players');
@@ -174,9 +180,13 @@ export default function TrackList() {
     await nextTrack();
   };
   const handleNextClick = async () => {
-    if (game.completed) {
+    if (game.completed || isStarting) {
       return; // @TODO
     }
+
+    // wait for a bit before starting to give the game master time to get their device
+    setStarting(true);
+    await new Promise(r => setTimeout(r, startingDuration));
 
     if (game.paused) {
       // unpause/resume
@@ -194,6 +204,7 @@ export default function TrackList() {
       // playing a track as usual
       await next();
     }
+    setStarting(false);
   };
   const handleClick = () => {
     // ensure audio doesn't get blocked because of not being user-interction-driven
@@ -257,12 +268,12 @@ export default function TrackList() {
       <Choices
         choices={track.choices}
         correctID={track.completed && track.id}
-        style={{ flex: 'auto', overflow: 'hidden' }}
+        style={{ flex: 'auto' }}
       />
     );
   }
   return (
-    <div className={classes.root} onClick={handleClick}>
+    <div className={`${classes.root} ${isStarting ? classes.starting : ''}`} onClick={handleClick}>
       <TileGrid className={classes.bg}>
         {tracks && tracks.map(choice =>
           <TileButton
@@ -299,13 +310,19 @@ export default function TrackList() {
           </TileGrid>
         )}
 
+        
         <SpotifyButton
           icon={<PlayArrowIcon />}
+          color={isStarting ? 'secondary' : 'primary'}
           style={{ margin: 16 }}
           disabled={!players?.length || Boolean(!unpickedTracks?.length && round?.completed)}
           onClick={handleNextClick}
         >
-          {isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`}
+          {isStarting ? (
+            'Get Ready!'
+          ) : (
+            isPlaylistInProgress ? 'Resume' : `Play${isPlaylistAlreadyPlayed ? ' Again' : ''}`
+          )}
         </SpotifyButton>
       </Card>
     </div>
