@@ -28,7 +28,7 @@ const useStyles = makeStyles(theme => ({
     '&:not(:last-child)': {
       borderRight: 'solid 2px black',
     },
-    '&.active:not(:hover) $track': {
+    '&.active $track': {
       borderRightColor: 'transparent',
     },
   },
@@ -38,9 +38,18 @@ const useStyles = makeStyles(theme => ({
     height: theme.spacing(3.5),
     padding: theme.spacing(1.5, 0),
     margin: theme.spacing(-1.5, 0),
-    cursor: 'pointer',
+    transition: 'padding 300ms, margin 300ms',
     '&:not(:last-child) $track': {
       borderRight: 'solid 1px black',
+    },
+    '&.active': {
+      cursor: 'pointer',
+    },
+    '&.active:hover': {
+      padding: theme.spacing(1, 0),
+    },
+    '&.active $track': {
+      backgroundColor: theme.palette.primary.main,
     },
   },
   track: {
@@ -48,10 +57,7 @@ const useStyles = makeStyles(theme => ({
     width: '100%',
     height: '100%',
     backgroundColor: theme.palette.text.disabled,
-    transition: 'border 300ms',
-    '&.active': {
-      backgroundColor: theme.palette.primary.main,
-    },
+    transition: 'background-color 300ms',
   },
   step: {
     backgroundColor: theme.palette.primary.main,
@@ -100,11 +106,11 @@ function TrackProgress({ tracks, j, ...props }) {
       {...props}
     >
       <div
-        className={classes.wrapper}
+        className={`${classes.wrapper} ${isActive ? 'active' : ''}`}
         onMouseEnter={() => isActive && hasInteracted && !audio.isPlaying() && audio.play(track?.src, false)}
         onMouseLeave={() => isActive && hasInteracted && !audio.isPlaying() && audio.stop(false, false)}
       >
-        <div className={`${classes.track} ${isActive ? 'active' : ''}`}>
+        <div className={classes.track}>
           <div className={classes.step} style={{ width }} />
         </div>
       </div>
