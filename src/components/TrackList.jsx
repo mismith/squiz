@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useRouteMatch } from 'react-router-dom';
 import { useAsync } from 'react-async-hook';
 import useLocalStorageState from 'use-local-storage-state';
-import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
+import { useListVals, useObjectVal } from 'react-firebase-hooks/database';
+import useAsyncEffect from 'use-async-effect';
 import shuffleArray from 'shuffle-array';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
@@ -15,7 +15,8 @@ import TileButton from './TileButton';
 import SpotifyButton from './SpotifyButton';
 import Choices from './Choices';
 import Loader from './Loader';
-import { FieldValue } from '../helpers/firebase';
+import useHasInteracted from '../hooks/useHasInteracted';
+import { refs, keyField, ServerValue } from '../helpers/firebase';
 import {
   loadCategory,
   loadPlaylist,
@@ -28,19 +29,18 @@ import {
   CHOICES_TIMEOUT,
   RESULTS_TIMEOUT,
   pickRandomTrack,
-  useTrack,
+  usePickedTracks,
   trimTrack,
-  useLatestDocument,
-  scorePlayerResponses,
   endGame,
   endRound,
   endTrack,
   resumeGame,
   pauseGame,
-  useGame,
+  startRound,
+  restartTrack,
 } from '../helpers/game';
 import * as audio from '../helpers/audio';
-import useHasInteracted from '../hooks/useHasInteracted';
+import useRouteParams from '../hooks/useRouteParams';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -88,7 +88,7 @@ export default function TrackList() {
 
   const hasInteracted = useHasInteracted();
 
-  const { params: { categoryID, playlistID, } } = useRouteMatch();
+  const { gameID, categoryID, playlistID } = useRouteParams();
   const {
     result: category,
     loading: categoryLoading,
@@ -98,29 +98,28 @@ export default function TrackList() {
     loading: playlistLoading,
   } = useAsync(loadPlaylist, [playlistID]);
   const {
-    result: tracks,
-    loading: tracksLoading,
+    result: playlistTracks,
+    loading: playlistTracksLoading,
   } = useAsync(loadPlaylistTracks, [playlistID]);
   const [usedTrackIDs, setUsedTrackIDs] = useLocalStorageState('usedTracks', '');
   const [isStarting, setStarting] = useState(false);
 
-  const [{ value: game, loading: gameLoading }, gameRef] = useGame();
-  const playersRef = gameRef.collection('players');
-  const { value: players, loading: playersLoading } = useCollectionData(playersRef);
-  const roundsRef = gameRef.collection('rounds');
-  const { value: rounds, loading: roundsLoading } = useCollectionData(roundsRef);
-  const { value: { ref: roundRef } = {}, loading: roundRefLoading } = useLatestDocument(roundsRef);
-  const { value: round, loading: roundLoading } = useDocumentData(roundRef, null, 'id');
+  const [game, gameLoading] = useObjectVal(refs.game(gameID), { keyField });
+  const [rounds, roundsLoading] = useListVals(refs.rounds(gameID), { keyField });
+  const [players, playersLoading] = useListVals(refs.players(gameID), { keyField });
+  const [[round] = [], roundLoading] = useListVals(refs.latestRound(gameID), { keyField });
+  const roundID = round?.id;
+  const [[track] = [], trackLoading] = useListVals(roundID && refs.latestTrack(roundID), { keyField });
+  const trackID = track?.id;
+
   const {
-    tracksRef,
     pickedTracks,
     unpickedTracks,
-    track,
-    loading: trackLoading,
-  } = useTrack(roundRef, tracks, usedTrackIDs.split(','));
+    loading: pickedTracksLoading,
+  } = usePickedTracks(roundID, playlistTracks, usedTrackIDs.split(','));
 
-  const loading = categoryLoading || playlistLoading || tracksLoading || playersLoading
-    || gameLoading || roundsLoading || roundRefLoading || roundLoading || trackLoading;
+  const loading = categoryLoading || playlistLoading || playlistTracksLoading || playersLoading
+    || pickedTracksLoading || gameLoading || roundsLoading || roundLoading || trackLoading;
   const isInProgress = game?.timestamp && !game?.completed && round?.timestamp && !round?.completed;
   const isPlaylistThisRounds = round?.playlistID === playlistID;
   const isPlaylistInProgress = isPlaylistThisRounds && !round?.completed;
@@ -131,11 +130,20 @@ export default function TrackList() {
 
   const nextTrack = async () => {
     const pickedTrack = pickRandomTrack(unpickedTracks);
-    if (!pickedTrack) throw new Error('no more tracks'); // @TODO
-    if (!(await audio.load(pickedTrack?.preview_url))) return nextTrack();
+    if (!pickedTrack) {
+      throw new Error('no more tracks'); // @TODO
+    } else {
+      setUsedTrackIDs(`${usedTrackIDs ? `${usedTrackIDs},` : ''}${pickedTrack.id}`);
+    }
+
+    if (pickedTrack.preview_url && !(await audio.loadSound(pickedTrack.preview_url))) {
+      return nextTrack();
+    }
 
     const decoys = await loadDecoys(pickedTrack);
-    if (decoys.length < 3) return nextTrack();
+    if (decoys.length < 3) {
+      return nextTrack();
+    }
 
     const decoysUsed = [];
     while (decoysUsed.length < 3) {
@@ -145,26 +153,23 @@ export default function TrackList() {
     }
 
     // start a new round, if one isn't already started, or if existing one is already completed
-    let trackRoundRef = roundRef;
+    let trackRoundID = roundID;
     if (!round || round?.completed) {
-      trackRoundRef = await roundsRef.add({
-        playlistID,
-        timestamp: FieldValue.serverTimestamp(),
-      });
+      ({ key: trackRoundID } = await startRound(gameID, playlistID));
     }
 
     // append trimmed track to round's list
     const newTrack = {
+      correctID: pickedTrack.id,
       src: pickedTrack.preview_url,
       choices: shuffleArray([
         pickedTrack,
         ...decoysUsed,
       ].map(trimTrack)),
-      timestamp: FieldValue.serverTimestamp(),
+      timestamp: ServerValue.TIMESTAMP,
     };
     // @TODO: avoid/prevent duplicates, and maybe also avoid leaks by trimming this?
-    setUsedTrackIDs(`${usedTrackIDs ? `${usedTrackIDs},` : ''}${pickedTrack.id}`);
-    await trackRoundRef.collection('tracks').doc(pickedTrack.id).set(newTrack);
+    await refs.tracks(trackRoundID).push(newTrack);
   };
   const next = async () => {
     audio.stop();
@@ -172,12 +177,12 @@ export default function TrackList() {
     if (pickedTracks?.length >= TRACKS_LIMIT || !hasEnoughTracksRemaining) {
       if (!round?.completed) {
         // @TODO: alert if track run out early
-        await endRound(roundRef);
+        await endRound(gameID, roundID);
 
         if (rounds?.length >= ROUNDS_LIMIT) {
           // @TODO: make this non-instant
           if (!game?.completed) {
-            await endGame(gameRef);
+            await endGame(gameID);
             audio.playSound(audio.SOUNDS.END);
           }
         }
@@ -201,16 +206,13 @@ export default function TrackList() {
 
     // unpause/resume
     if (game.paused) {
-      await resumeGame(gameRef);
+      await resumeGame(gameID);
     }
 
     // resuming a track (e.g. after page refresh)
-    if (track && !track.completed) {
+    if (trackID && !track?.completed) {
       // ensure start time is up-to-date, and clear any existing player responses
-      await tracksRef.doc(track.id).set({
-        players: FieldValue.delete(),
-        timestamp: FieldValue.serverTimestamp(),
-      }, { merge: true });
+      await restartTrack(roundID, trackID);
     } else {
       // playing a track as usual
       await next();
@@ -226,20 +228,22 @@ export default function TrackList() {
   useEffect(() => {
     if (!hasInteracted && !game?.paused) {
       // pause round until user interacts with screen
-      pauseGame(gameRef);
+      pauseGame(gameID);
     }
   }, [hasInteracted, game?.id]);
-  useAsync(async () => {
+  useAsyncEffect(async (isMounted) => {
     // make sure the audio loads (skip track if not)
     try {
       if (hasInteracted && track?.src && !track.completed && !game?.paused) {
         await audio.play(track.src);
+        if (!isMounted()) return;
 
         // play a clip of the track (e.g. stop playing it early, before it actually ends)
         await new Promise((resolve) => {
           audio.setTimeout(resolve, CHOICES_TIMEOUT);
         });
-        await endTrack(tracksRef.doc(track.id));
+        if (!isMounted()) return;
+        await endTrack(roundID, track.id);
       }
     } catch (err) {
       console.warn(err); // eslint-disable-line no-console
@@ -249,15 +253,13 @@ export default function TrackList() {
       // e.g. remove broken track -> nextTrack()
     }
   }, [hasInteracted, track?.src, game?.paused]);
-  useAsync(async () => {
+  useAsyncEffect(async (isMounted) => {
     if (hasInteracted && track?.completed && !game?.paused) {
-      // update all player scores
-      await scorePlayerResponses(gameRef, track);
-
       // show results
       await new Promise((resolve) => {
         audio.setTimeout(resolve, RESULTS_TIMEOUT);
       });
+      if (!isMounted()) return;
       await next();
     }
   }, [hasInteracted, track?.completed, game?.paused]);
@@ -271,7 +273,7 @@ export default function TrackList() {
     return (
       <Choices
         choices={track.choices}
-        correctID={track.completed && track.id}
+        correctID={track.completed && track.correctID}
         style={{ flex: 'auto' }}
       />
     );
@@ -279,7 +281,7 @@ export default function TrackList() {
   return (
     <div className={`${classes.root} ${isStarting ? classes.starting : ''}`}>
       <TileGrid className={classes.bg}>
-        {tracks && tracks.map(choice =>
+        {playlistTracks?.map(choice =>
           <TileButton
             key={choice.id}
             image={choice.album.images[0].url}

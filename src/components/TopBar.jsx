@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useHistory, useRouteMatch } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
+import { useObjectVal } from 'react-firebase-hooks/database';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
@@ -10,11 +11,13 @@ import Home from '@material-ui/icons/Home';
 
 import GameInfo from '../components/GameInfo';
 import DialogConfirm from '../components/DialogConfirm';
-import { endGame, useGame } from '../helpers/game';
+import useRouteParams from '../hooks/useRouteParams';
+import { endGame } from '../helpers/game';
+import { refs, keyField } from '../helpers/firebase';
 
 export default function TopBar(props) {
-  const { params: { gameID, categoryID, playlistID } } = useRouteMatch();
-  const [{ value: game }, gameRef] = useGame();
+  const { gameID, categoryID, playlistID } = useRouteParams();
+  const [game] = useObjectVal(refs.game(gameID), { keyField });
 
   let to = '';
   if (!game?.completed) {
@@ -30,7 +33,7 @@ export default function TopBar(props) {
   const [confirmQuit, setConfirmQuit] = useState(false);
   const handleCancelQuit = () => setConfirmQuit(false);
   const handleConfirmQuit = async () => {
-    await endGame(gameRef);
+    await endGame(gameID);
     handleCancelQuit();
     history.push('/');
   };

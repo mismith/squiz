@@ -1,18 +1,16 @@
 import React from 'react';
-import { useCollection, useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
+import { useListVals, useObjectVal } from 'react-firebase-hooks/database';
 import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
 import TileButton from './TileButton';
-import {
-  ROUNDS_LIMIT,
-  TRACKS_LIMIT,
-  useGame,
-} from '../helpers/game';
-import * as audio from '../helpers/audio';
 import useHasInteracted from '../hooks/useHasInteracted';
+import useRouteParams from '../hooks/useRouteParams';
+import { ROUNDS_LIMIT, TRACKS_LIMIT } from '../helpers/game';
+import * as audio from '../helpers/audio';
+import { refs, keyField } from '../helpers/firebase';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -84,16 +82,20 @@ function ChoicePreview({ choice, ...props }) {
   );
 }
 
-function TrackProgress({ tracks, j, ...props }) {
+function TrackProgress({ roundID, j, ...props }) {
   const classes = useStyles();
 
   const hasInteracted = useHasInteracted();
 
+  const [tracks] = useListVals(roundID && refs.tracks(roundID), { keyField });
   const track = tracks?.[j - 1];
-  const choice = track?.choices?.find(({ id }) => id === track?.id);
+  const correctID = track?.correctID;
   const isActive = j < tracks?.length || !!track?.completed;
 
-  const [{ value: game }] = useGame();
+  const choice = track?.choices?.find(({ id }) => id === correctID);
+
+  const { gameID } = useRouteParams();
+  const [game] = useObjectVal(refs.game(gameID), { keyField });
   const progress = audio.useProgress();
   const isInProgress = !game?.paused && j === tracks?.length;
   const width = `${isActive ? 100 : (isInProgress ? progress : 0)}%`;
@@ -118,21 +120,22 @@ function TrackProgress({ tracks, j, ...props }) {
   );
 }
 
-function RoundProgress({ rounds, i, className, ...props }) {
+function RoundProgress({ i, className, ...props }) {
   const classes = useStyles();
 
   const tracksNum = Array.apply(null, { length: TRACKS_LIMIT }).map((v, i) => i + 1);
 
-  const roundRef = rounds?.[i - 1]?.ref;
-  const { value: round } = useDocumentData(roundRef, null, 'id');
+  const { gameID } = useRouteParams();
+  const [rounds] = useListVals(refs.rounds(gameID), { keyField });
+  const roundID = rounds?.[i - 1]?.id;
+  const round = rounds?.[roundID];
+
   const isActive = i < rounds?.length || (i === rounds?.length && round?.completed);
-  const tracksQuery = roundRef?.collection('tracks').orderBy('timestamp', 'asc');
-  const { value: tracks } = useCollectionData(tracksQuery, null, 'id');
 
   return (
     <div className={`${classes.round} ${isActive ? 'active' : ''} ${className || ''}`} {...props}>
       {i <= rounds?.length && tracksNum.map(j => (
-        <TrackProgress key={j} tracks={tracks} j={j} />
+        <TrackProgress key={j} j={j} roundID={roundID} />
       ))}
     </div>
   );
@@ -143,21 +146,13 @@ export default function ProgressIndicator({ className, ...props }) {
   
   const roundsNum = Array.apply(null, { length: ROUNDS_LIMIT }).map((v, i) => i + 1);
 
-  const [, gameRef] = useGame();
-  const roundsQuery = gameRef.collection('rounds').orderBy('timestamp', 'asc');
-  const { value: { docs: rounds = [] } = {} } = useCollection(roundsQuery);
-
   return (
     <div
       className={`${classes.root} ${className || ''}`}
       {...props}
     >
       {roundsNum.map(i => (
-        <RoundProgress
-          key={i}
-          rounds={rounds}
-          i={i}
-        />
+        <RoundProgress key={i} i={i} />
       ))}
     </div>
   );

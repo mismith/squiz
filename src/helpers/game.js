@@ -1,8 +1,7 @@
-import { useRouteMatch } from 'react-router-dom';
-import { useCollection, useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
+import { useListVals } from 'react-firebase-hooks/database';
 import weightedRandom from 'weighted-random';
 
-import { firestore, FieldValue } from './firebase';
+import { refs, keyField, ServerValue } from './firebase';
 import * as audio from './audio';
 
 export const ROUNDS_LIMIT = 5;
@@ -25,46 +24,24 @@ export function pickRandomTrack(tracks = []) {
   const track = tracks[trackIndex];
   return track;
 }
+export function usePickedTracks(roundID, possibleTracks = [], usedTrackIDs = []) {
+  const [tracks = [], loading, error] = useListVals(roundID && refs.tracks(roundID), { keyField });
 
-export function useLatestDocument(ref) {
-  const query = ref && ref.orderBy('timestamp', 'desc').limit(1);
-  const { value: { docs: [value] = [] } = {}, loading, error } = useCollection(query);
-
-  return {
-    value,
-    loading,
-    error,
-  };
-}
-
-export function useTrack(roundRef, possibleTracks = [], usedTrackIDs = []) {
-  const tracksRef = roundRef?.collection('tracks');
-  const {
-    value: tracks = [],
-    loading: tracksLoading,
-  } = useCollectionData(tracksRef?.orderBy('timestamp'), null, 'id');
-
-  const { value: { ref: trackRef } = {}, loading: trackRefLoading } = useLatestDocument(tracksRef);
-  const { value: track, loading: trackLoading } = useDocumentData(trackRef, null, 'id');
-
-  const pickedTrackIDs = tracks.map(({ id }) => id);
+  const pickedTrackIDs = tracks
+    .map(({ correctID }) => correctID);
   const pickedTracks = pickedTrackIDs
-    .map(id => possibleTracks.find(track => track.id === id))
+    .map(trackID => possibleTracks.find(({ id }) => id === trackID))
     .filter(Boolean);
   const unpickedTracks = possibleTracks
     .filter(({ preview_url }) => preview_url)
     .filter(({ id }) => !pickedTrackIDs.includes(id))
     .filter(({ id }) => !usedTrackIDs.includes(id));
 
-  const loading = tracksLoading || trackRefLoading || trackLoading;
-
   return {
-    tracksRef,
     pickedTracks,
     unpickedTracks,
-    trackRef,
-    track,
     loading,
+    error,
   };
 }
 
@@ -78,101 +55,125 @@ export const trimTrack = (track) => ({
   },
 });
 
-export function getTrackPointsForPlayer(track, playerID) {
-  const player = track?.players?.[playerID];
-  if (player) {
-    const playerSwipedAt = player.timestamp?.toDate().getTime() || 0;
-    const trackAcceptsSwipesAt = track.timestamp?.toDate().getTime() || 0;
-    // give players a 'head start' in order to process the visuals/sounds
-    const reactionTime = playerSwipedAt - trackAcceptsSwipesAt - CHOICES_STARTUP; 
-    const percent = Math.round(reactionTime / CHOICES_TIMEOUT * 100);
-    const points = 100 - Math.min(Math.max(0, percent), 100);
-    return points;
+export function getPointsForTrackGuess(track, guess) {
+  if (track?.correctID && guess?.choiceID) {
+    const isCorrect = track.correctID === guess.choiceID;
+    if (isCorrect) {
+      const trackAcceptsSwipesAt = track?.timestamp || 0;
+      const playerSwipedAt = guess?.timestamp || 0;
+      // give players a 'head start' in order to process the visuals/sounds
+      const reactionTime = playerSwipedAt - trackAcceptsSwipesAt - CHOICES_STARTUP; 
+      const percent = Math.round(reactionTime / CHOICES_TIMEOUT * 100);
+      const points = 100 - Math.min(Math.max(0, percent), 100);
+      return points;
+    }
+    return 0;
   }
   return null;
 }
-
-export async function scorePlayerResponses(gameRef, track) {
-  return Promise.all(Object.entries(track.players || {}).map(async ([playerID, response]) => {
-    const isCorrect = track.id === response.choiceID;
-    if (isCorrect) {
-      const points = getTrackPointsForPlayer(track, playerID);
-      const playerRef = gameRef.collection('players').doc(playerID);
-      const { score } = (await playerRef.get()).data();
-
-      return playerRef.set({
-        score: (score || 0) + (points || 0),
-      }, { merge: true });
-    }
-    return null;
+export async function getScores(gameID) {
+  const scores = {};
+  scores[gameID] = {};
+  await new Promise(r1 => refs.rounds(gameID).once('value', async roundsSnap => {
+    const p1 = [];
+    roundsSnap.forEach(round => {
+      const roundID = round.key;
+      scores[gameID][roundID] = {}
+      p1.push(new Promise(r2 => refs.tracks(roundID).once('value', async tracksSnap => {
+        const p2 = [];
+        tracksSnap.forEach(track => {
+          const trackID = track.key;
+          scores[gameID][roundID][trackID] = {};
+          if (track.val()?.completed) { // don't include guesses until the track complete
+            p2.push(new Promise(r3 => refs.guesses(trackID).once('value', guessesSnap => {
+              guessesSnap.forEach(guess => {
+                const playerID = guess.key;
+                const points = getPointsForTrackGuess(track.val(), guess.val());
+                scores[gameID][roundID][trackID][playerID] = points;
+              });
+              r3();
+            })));
+          }
+        });
+        await Promise.all(p2);
+        r2();
+      })));
+    });
+    await Promise.all(p1);
+    r1();
   }));
+  return scores;
+}
+export function getPlayerScore(scores, gameID, playerID) {
+  let score = 0;
+  Object.values(scores?.[gameID] || {}).forEach((round) => {
+    Object.values(round || {}).forEach((track) => {
+      score += track[playerID] || 0;
+    });
+  });
+  return score;
 }
 
 export function generateGameID() {
   return `${Math.round(Math.random() * 8999) + 1000}`; // [1000, 9999]
 }
 
-export async function startGame(gameRef) {
-  return gameRef.set({
-    timestamp: FieldValue.serverTimestamp(),
+export async function startGame(gameID) {
+  return refs.game(gameID).set({
+    timestamp: ServerValue.TIMESTAMP,
   });
 }
-export async function newGame(gamesRef, gameID) {
-  const gameRef = gamesRef.doc(String(gameID));
-  return startGame(gameRef);
-}
-export async function restartGame(gameRef) {
+export async function restartGame(gameID) {
+  const playersRef = refs.players(gameID);
+  const playerIDs = Object.keys((await playersRef.once('value')).val());
+
   await Promise.all([
-    (async () => {
-      // remove rounds
-      const roundsRef = gameRef.collection('rounds');
-      const { docs: rounds } = await roundsRef.get();
-      return Promise.all(rounds.map(({ id }) => roundsRef.doc(id).delete()));
-    })(),
-    (async () => {
-      // reset scores
-      const playersRef = gameRef.collection('players');
-      const { docs: players } = await playersRef.get();
-      return Promise.all(players.map(({ id }) => playersRef.doc(id).set({
-        score: FieldValue.delete(),
-      }, { merge: true })));
-    })(),
+    refs.rounds(gameID).remove(),
+    ...playerIDs.map(playerID => playersRef.child(playerID).child('score').remove()),
   ]);
 
-  return startGame(gameRef);
+  return startGame(gameID);
 }
-export async function pauseGame(gameRef) {
-  return gameRef.set({
-    paused: FieldValue.serverTimestamp(),
-  }, { merge: true });
+export async function pauseGame(gameID) {
+  return refs.game(gameID).update({
+    paused: ServerValue.TIMESTAMP,
+  });
 }
-export async function resumeGame(gameRef) {
-  return gameRef.set({
-    paused: FieldValue.delete(),
-  }, { merge: true });
+export async function resumeGame(gameID) {
+  return refs.game(gameID).update({
+    paused: null,
+  });
+}
+export async function endGame(gameID) {
+  return refs.game(gameID).update({
+    completed: ServerValue.TIMESTAMP,
+  });
 }
 
-export async function endGame(gameRef) {
-  return gameRef.set({
-    completed: FieldValue.serverTimestamp(),
-  }, { merge: true });
+export async function startRound(gameID, playlistID) {
+  return refs.rounds(gameID).push({
+    playlistID,
+    timestamp: ServerValue.TIMESTAMP,
+  });
 }
-export async function endRound(roundRef) {
-  return roundRef.set({
-    completed: FieldValue.serverTimestamp(),
-  }, { merge: true });
+export async function endRound(gameID, roundID) {
+  return refs.round(gameID, roundID).update({
+    completed: ServerValue.TIMESTAMP,
+  });
 }
-export async function endTrack(trackRef) {
+
+export async function restartTrack(roundID, trackID) {
+  return Promise.all([
+    refs.track(roundID, trackID).update({
+      timestamp: ServerValue.TIMESTAMP,
+    }),
+    refs.guesses(trackID).remove(),
+  ]);
+}
+export async function endTrack(roundID, trackID) {
   audio.stop(undefined, false); // don't clear progress so as to avoid 'flashing' bar
 
-  return trackRef.set({
-    completed: FieldValue.serverTimestamp(),
-  }, { merge: true });
-}
-
-export function useGame() {
-  const { params: { gameID } } = useRouteMatch();
-  const gameRef = firestore.collection('games').doc(String(gameID));
-  const game = useDocumentData(gameRef, null, 'id');
-  return [game, gameRef];
+  return refs.track(roundID, trackID).update({
+    completed: ServerValue.TIMESTAMP,
+  });
 }

@@ -13,6 +13,16 @@ export function playSound(src) {
   const sound = new Audio(src);
   sound.addEventListener('loadeddata', () => sound.play());
 }
+export function loadSound(src) {
+  return new Promise((resolve) => {
+    const sound = new Audio(src);
+    sound.addEventListener('loadeddata', () => resolve(true));
+    sound.addEventListener('error', (err) => {
+      console.error(err);
+      resolve(false);
+    });
+  });
+}
 
 export let player;
 let timeout;

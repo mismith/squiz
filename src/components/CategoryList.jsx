@@ -14,9 +14,9 @@ import { loadCategories } from '../helpers/spotify';
 
 export default function CategoryList() {
   const { url } = useRouteMatch();
-  const { result: categories, loading } = useAsync(loadCategories, []);
+  const { result: categories = [], loading, error } = useAsync(loadCategories, []);
   
-  if (loading) {
+  if (loading || error) {
     return (
       <Loader />
     );

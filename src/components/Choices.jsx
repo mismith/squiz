@@ -57,7 +57,7 @@ export default ({ choices, correctID, onPick = () => {}, ...props }) => {
 
   return (
     <div className={classes.root} {...props}>
-      {choices.map(choice =>
+      {choices?.map(choice =>
         <div key={choice.id} className={classes.choice}>
           <TileButton
             image={choice.album.image}

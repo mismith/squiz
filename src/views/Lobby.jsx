@@ -14,9 +14,9 @@ import Shuffle from '@material-ui/icons/Shuffle';
 import SpotifyButton from '../components/SpotifyButton';
 import SpotifyLoginButton from '../components/SpotifyLoginButton';
 import About from '../components/About';
-import { firestore, FieldValue } from '../helpers/firebase';
+import { refs, ServerValue } from '../helpers/firebase';
 import { login, retrieveAccessToken } from '../helpers/spotify';
-import { generateGameID, newGame } from '../helpers/game';
+import { generateGameID, startGame } from '../helpers/game';
 import useRandomName from '../hooks/useRandomName';
 
 const useStyles = makeStyles(theme => ({
@@ -44,16 +44,12 @@ export default function Lobby() {
   const [joinGameLoading, setJoinGameLoading] = useState(false);
   const [hostGameLoading, setHostGameLoading] = useState(false);
 
-  const gamesRef = firestore.collection('games');
-
   const history = useHistory();
   async function joinGame({ joinGameID }) {
     if (joinGameLoading) return;
     setJoinGameLoading(true);
 
-    const gameRef = gamesRef.doc(String(joinGameID));
-    const gameDoc = await gameRef.get();
-    if (!gameDoc.exists) {
+    if (!(await refs.game(joinGameID).once('value')).exists()) {
       setJoinGameLoading(false);
       setGameIDError('Not found');
       return;
@@ -72,32 +68,34 @@ export default function Lobby() {
       return;
     }
 
-    const playersRef = gameRef.collection('players');
-    const playerDocs = (await playersRef.get()).docs;
-    const playerUsingName = playerDocs.find(d => d.data()?.name === trimmedPlayerName);
+    const playersRef = refs.players(joinGameID);
+    const players = (await playersRef.once('value')).val() || {};
+    const playerUsingNameID = Object.entries(players).find(
+      ([, p]) => p?.name === trimmedPlayerName
+    )?.[0];
     const handleDuplicateName = () => {
       setJoinGameLoading(false);
       setPlayerNameError('A player is already using this name');
     };
     const playerData = {
       name: trimmedPlayerName,
-      timestamp: FieldValue.serverTimestamp(),
+      timestamp: ServerValue.TIMESTAMP,
     };
     let playerID;
-    if (storedPlayerID && playerDocs.find(p => p.id === storedPlayerID)) {
-      if (playerUsingName && playerUsingName.id !== storedPlayerID) {
+    if (storedPlayerID && Object.keys(players).find(key => key === storedPlayerID)) {
+      if (playerUsingNameID && playerUsingNameID !== storedPlayerID) {
         return handleDuplicateName();
       }
 
-      await playersRef.doc(storedPlayerID).set(playerData, { merge: true });
+      await playersRef.child(storedPlayerID).update(playerData);
 
       playerID = storedPlayerID;
     } else {
-      if (playerUsingName) {
+      if (playerUsingNameID) {
         return handleDuplicateName();
       }
 
-      const { id: newPlayerID } = await playersRef.add(playerData);
+      const { key: newPlayerID } = await playersRef.push(playerData);
       setPlayerID(newPlayerID);
 
       playerID = newPlayerID;
@@ -120,10 +118,9 @@ export default function Lobby() {
     // resume existing (uncompleted) game first, if applicable
     let newGameID;
     if (hostGameID) {
-      const game = await gamesRef.doc(String(hostGameID)).get();
-      if (game.exists) {
-        const { completed } = game.data();
-        if (!completed) {
+      const game = (await refs.game(hostGameID).once('value')).val();
+      if (game) {
+        if (!game.completed) {
           // game exists and is still in progress, so resume
           newGameID = hostGameID;
         }
@@ -136,17 +133,17 @@ export default function Lobby() {
     if (!newGameID) {
       const findUnusedGameID = async () => {
         newGameID = generateGameID();
-        const { exists } = await gamesRef.doc(String(newGameID)).get();
-        if (exists) await findUnusedGameID();
+        const gameExists = (await refs.game(newGameID).once('value')).exists();
+        if (gameExists) await findUnusedGameID();
       };
       await findUnusedGameID();
     }
     // start game
-    await newGame(gamesRef, newGameID);
+    await startGame(newGameID);
     setHostGameID(newGameID);
     setHostGameLoading(false);
     history.push(`/games/${newGameID}`);
-  }, [gamesRef, history, hostGameID, hostGameLoading, setHostGameID]);
+  }, [history, hostGameID, hostGameLoading, setHostGameID]);
 
   useEffect(() => {
     const { state } = retrieveAccessToken();

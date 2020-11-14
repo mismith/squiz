@@ -1,20 +1,17 @@
-import React, { useState } from 'react';
-import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
+import React, { useEffect, useRef, useState } from 'react';
+import { useListVals, useObjectVal } from 'react-firebase-hooks/database';
 import CountTo from 'react-count-to';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
 
 import SpotifyButton from './SpotifyButton';
 import DialogConfirm from './DialogConfirm';
 import ScoreChange from './ScoreChange';
 import Loader from './Loader';
-import {
-  getTrackPointsForPlayer,
-  useTrack,
-  useLatestDocument,
-  useGame,
-} from '../helpers/game';
-import { makeStyles } from '@material-ui/core';
+import useRouteParams from '../hooks/useRouteParams';
+import { getPlayerScore, getScores } from '../helpers/game';
+import { refs, keyField } from '../helpers/firebase';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -37,29 +34,51 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+function usePrevious(value) {
+  const ref = useRef();
+  useEffect(() => {
+    if (ref.current !== value) {
+      ref.current = value;
+    }
+  });
+  return ref.current;
+}
+
 export function Player({ player, onRemove, className, ...props }) {
   const classes = useStyles();
 
-  const [{ value: game, loading: gameLoading }, gameRef] = useGame();
-  const roundsRef = gameRef.collection('rounds');
-  const { value: { ref: roundRef } = {}, loading: roundRefLoading } = useLatestDocument(roundsRef);
-  const { value: round, loading: roundLoading } = useDocumentData(roundRef, null, 'id');
-  const { track, loading: trackLoading } = useTrack(roundRef);
+  const playerID = player.id;
+  const { gameID } = useRouteParams();
+  const [game] = useObjectVal(refs.game(gameID), { keyField });
+  const [[round] = []] = useListVals(refs.latestRound(gameID), { keyField });
+  const roundID = round?.id;
+  const [[track] = [], loading] = useListVals(roundID && refs.latestTrack(roundID), { keyField });
+  const trackID = track?.id;
+  const [guess] = useObjectVal(trackID && refs.guess(trackID, playerID))
+
+  const [score, setScore] = useState(0);
+  const prevScore = usePrevious(score);
+  useEffect(() => {
+    let cancelled = false;
+    getScores(gameID).then(scores => {
+      if (!cancelled) {
+        setScore(getPlayerScore(scores, gameID, playerID));
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [gameID, playerID, track?.completed]);
   
-  const loading = gameLoading || roundRefLoading || roundLoading || trackLoading;
-
-  const gameActive = !loading && !game?.paused;
-  const trackCompleted = track?.completed;
+  const gameActive = !loading && game?.id && !game?.paused;
   const roundInProgress = !round?.completed;
-  const response = track?.players?.[player.id];
-  const isCorrect = response?.choiceID === track?.id;
+  const trackCompleted = track?.completed;
+  const isCorrect = guess?.choiceID === track?.correctID;
   const showCorrectColor = isCorrect ? 'primary' : 'secondary';
-  const points = getTrackPointsForPlayer(track, player.id); // @TODO: compute difference from local state instead of recalculating
 
-  const score = player.score || 0;
-  const variant = gameActive && roundInProgress && response ? 'contained' : 'outlined';
+  const variant = gameActive && roundInProgress && guess ? 'contained' : 'outlined';
   const color = gameActive && trackCompleted && roundInProgress ? showCorrectColor : 'default';
-  const change = (gameActive && trackCompleted && roundInProgress && isCorrect && points) || 0;
+  const change = (gameActive && trackCompleted && roundInProgress && isCorrect && (score - prevScore)) || 0;
 
   return (
     <div
@@ -74,7 +93,7 @@ export function Player({ player, onRemove, className, ...props }) {
         <ScoreChange change={change} style={{ visibility: 'hidden' }} />
         <Typography variant="h5">
           <CountTo
-            from={score - change}
+            from={prevScore}
             to={score}
             speed={1000}
             delay={32}
@@ -96,17 +115,13 @@ export function Player({ player, onRemove, className, ...props }) {
 export default function Players({ className, ...props }) {
   const classes = useStyles();
 
-  const [, gameRef] = useGame();
-  const playersRef = gameRef.collection('players');
-  const {
-    value: players = [],
-    loading,
-  } = useCollectionData(playersRef.orderBy('timestamp'), null, 'id');
+  const { gameID } = useRouteParams();
+  const [players, loading] = useListVals(refs.players(gameID), { keyField });
 
   const [playerToRemove, setPlayerToRemove] = useState(null);
   const handleClose = () => setPlayerToRemove(null);
   const handleRemove = async () => {
-    await playersRef.doc(playerToRemove.id).delete();
+    await refs.player(gameID, playerToRemove.id).remove();
     handleClose();
   };
 

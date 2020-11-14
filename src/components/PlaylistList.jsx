@@ -14,9 +14,9 @@ import { loadCategoryPlaylists } from '../helpers/spotify';
 
 export default function PlaylistList() {
   const { url, params: { categoryID } } = useRouteMatch();
-  const { result: playlists, loading } = useAsync(loadCategoryPlaylists, [categoryID]);
+  const { result: playlists = [], loading, error } = useAsync(loadCategoryPlaylists, [categoryID]);
   
-  if (loading) {
+  if (loading || error) {
     return (
       <Loader />
     );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRouteMatch } from 'react-router-dom';
+import { useObjectVal } from 'react-firebase-hooks/database';
 import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
 
@@ -12,7 +12,8 @@ import Loader from '../components/Loader';
 import GameOver from '../components/GameOver';
 import ProgressIndicator from '../components/ProgressIndicator';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
-import { useGame } from '../helpers/game';
+import useRouteParams from '../hooks/useRouteParams';
+import { refs, keyField } from '../helpers/firebase';
 
 const styles = {
   container: {
@@ -39,8 +40,8 @@ const styles = {
 };
 
 export function Content() {
-  const [{ value: game, loading }] = useGame();
-  const { params: { categoryID, playlistID } } = useRouteMatch();
+  const { gameID, categoryID, playlistID } = useRouteParams();
+  const [game, loading] = useObjectVal(refs.game(gameID), { keyField });
 
   if (loading) {
     return (
@@ -79,9 +80,9 @@ export function Content() {
 }
 
 export default function Screen() {
-  const [, gameRef] = useGame();
+  const { gameID } = useRouteParams();
 
-  useConnectivityStatus(gameRef);
+  useConnectivityStatus(refs.game(gameID));
 
   return (
     <div style={styles.container}>

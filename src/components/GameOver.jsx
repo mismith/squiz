@@ -1,17 +1,19 @@
 import React from 'react';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { useListVals } from 'react-firebase-hooks/database';
 import Typography from '@material-ui/core/Typography';
 import Replay from '@material-ui/icons/Replay';
 
 import SpotifyButton from './SpotifyButton';
-import { useGame, restartGame } from '../helpers/game';
+import useRouteParams from '../hooks/useRouteParams';
+import { restartGame } from '../helpers/game';
+import { refs, keyField } from '../helpers/firebase';
 
 export default function GameOver(props) {
-  const [, gameRef] = useGame();
-  const playersRef = gameRef.collection('players').orderBy('score', 'desc');
-  const { value: [winner] = [] } = useCollectionData(playersRef, null, 'id');
+  const { gameID } = useRouteParams();
+  const winnerRef = refs.players(gameID).orderByKey('score').limitToLast(1);
+  const [[winner] = []] = useListVals(winnerRef, { keyField });
 
-  const handleRestart = () => restartGame(gameRef);
+  const handleRestart = () => restartGame(gameID);
 
   return (
     <Typography
