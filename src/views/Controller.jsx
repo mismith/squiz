@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useListVals, useObjectVal } from 'react-firebase-hooks/database';
+import { useObjectVal } from 'react-firebase-hooks/database';
 import { useSwipeable } from 'react-swipeable';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -9,22 +9,22 @@ import Skeleton from '@material-ui/lab/Skeleton';
 import GameInfo from '../components/GameInfo';
 import useRouteParams from '../hooks/useRouteParams';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
-import { refs, keyField, ServerValue } from '../helpers/firebase';
+import { refs, keyField, ServerValue, useLatestObjectVal } from '../helpers/firebase';
 import { directions } from '../helpers/directions';
 
 function usePlayerSwipes() {
   const { gameID, playerID } = useRouteParams();
   const [game] = useObjectVal(refs.game(gameID));
-  const [[round] = []] = useListVals(refs.latestRound(gameID), { keyField });
+  const [round] = useLatestObjectVal(refs.rounds(gameID), { keyField });
   const roundID = round?.id;
-  const [[track] = []] = useListVals(roundID && refs.latestTrack(roundID), { keyField });
+  const [track] = useLatestObjectVal(roundID && refs.tracks(roundID), { keyField });
   const trackID = track?.id;
 
   const [swipe, setSwipe] = useState(null);
   useEffect(() => {
     // reset local swipe marker for each new track
     setSwipe(null);
-  }, [playerID, gameID, roundID, trackID]);
+  }, [playerID, gameID, roundID, trackID, track?.completed]);
   async function onSwiped({ dir }) {
     if (!game?.paused && !game?.inactive && track?.id && !track?.completed && dir !== swipe) {
       // send selection to server

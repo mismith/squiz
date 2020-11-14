@@ -1,5 +1,6 @@
 import firebase from 'firebase/app';
 import 'firebase/database';
+import { useListVals } from 'react-firebase-hooks/database';
 
 export const config = {
   apiKey: 'AIzaSyBsV2vcnGc5HoQm8dZuLS-svp8N5Z6jGkg',
@@ -22,13 +23,15 @@ export const refs = {
   player: (gameID, playerID) => refs.players(gameID).child(playerID),
   rounds: gameID => database.ref('games-rounds').child(gameID),
   round: (gameID, roundID) => refs.rounds(gameID).child(roundID),
-  latestRound: gameID => refs.rounds(gameID).limitToLast(1),
   tracks: roundID => database.ref('rounds-tracks').child(roundID),
   track: (roundID, trackID) => refs.tracks(roundID).child(trackID),
-  latestTrack: roundID => refs.tracks(roundID).limitToLast(1),
   guesses: trackID => database.ref('tracks-players').child(trackID),
   guess: (trackID, playerID) => refs.guesses(trackID).child(playerID),
 };
 export const keyField = 'id';
+export function useLatestObjectVal(ref, options = undefined) {
+  const [[value] = [], ...others] = useListVals(ref?.limitToLast(1), options);
+  return [value, ...others];
+}
 
 export default firebase;

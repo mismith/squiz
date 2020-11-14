@@ -11,7 +11,7 @@ import ScoreChange from './ScoreChange';
 import Loader from './Loader';
 import useRouteParams from '../hooks/useRouteParams';
 import { getPlayerScore, getScores } from '../helpers/game';
-import { refs, keyField } from '../helpers/firebase';
+import { refs, keyField, useLatestObjectVal } from '../helpers/firebase';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -50,9 +50,9 @@ export function Player({ player, onRemove, className, ...props }) {
   const playerID = player.id;
   const { gameID } = useRouteParams();
   const [game] = useObjectVal(refs.game(gameID), { keyField });
-  const [[round] = []] = useListVals(refs.latestRound(gameID), { keyField });
+  const [round] = useLatestObjectVal(refs.rounds(gameID), { keyField });
   const roundID = round?.id;
-  const [[track] = [], loading] = useListVals(roundID && refs.latestTrack(roundID), { keyField });
+  const [track, loading] = useLatestObjectVal(roundID && refs.tracks(roundID), { keyField });
   const trackID = track?.id;
   const [guess] = useObjectVal(trackID && refs.guess(trackID, playerID))
 

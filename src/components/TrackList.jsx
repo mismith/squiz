@@ -16,7 +16,7 @@ import SpotifyButton from './SpotifyButton';
 import Choices from './Choices';
 import Loader from './Loader';
 import useHasInteracted from '../hooks/useHasInteracted';
-import { refs, keyField, ServerValue } from '../helpers/firebase';
+import { refs, keyField, ServerValue, useLatestObjectVal } from '../helpers/firebase';
 import {
   loadCategory,
   loadPlaylist,
@@ -107,9 +107,9 @@ export default function TrackList() {
   const [game, gameLoading] = useObjectVal(refs.game(gameID), { keyField });
   const [rounds, roundsLoading] = useListVals(refs.rounds(gameID), { keyField });
   const [players, playersLoading] = useListVals(refs.players(gameID), { keyField });
-  const [[round] = [], roundLoading] = useListVals(refs.latestRound(gameID), { keyField });
+  const [round, roundLoading] = useLatestObjectVal(refs.rounds(gameID), { keyField });
   const roundID = round?.id;
-  const [[track] = [], trackLoading] = useListVals(roundID && refs.latestTrack(roundID), { keyField });
+  const [track, trackLoading] = useLatestObjectVal(roundID && refs.tracks(roundID), { keyField });
   const trackID = track?.id;
 
   const {
