@@ -27,6 +27,8 @@ export default function useConnectivityStatus(ref, key = 'inactive') {
     document.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
+      handleBeforeUnload();
+
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.removeEventListener('beforeunload', handleBeforeUnload);
     };
