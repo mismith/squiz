@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useObjectVal } from 'react-firebase-hooks/database';
 import { useSwipeable } from 'react-swipeable';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import Skeleton from '@material-ui/lab/Skeleton';
 
-import GameInfo from '../components/GameInfo';
 import useRouteParams from '../hooks/useRouteParams';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
 import { refs, keyField, ServerValue, useLatestObjectVal } from '../helpers/firebase';
 import { directions } from '../helpers/directions';
+import TopBar from '../components/TopBar';
 
 function usePlayerSwipes() {
   const { gameID, playerID } = useRouteParams();
@@ -92,12 +89,6 @@ const styles = {
   },
 };
 
-export function PlayerName({ playerRef }) {
-  const [player, loading] = useObjectVal(playerRef);
-
-  return loading ? <Skeleton variant="text" width={100} /> : <>{player?.name}</>;
-}
-
 export function SwipeArea() {
   const { swipe, handlers } = usePlayerSwipes();
 
@@ -124,19 +115,12 @@ export function SwipeArea() {
 
 export default function Controller() {
   const { gameID, playerID } = useRouteParams();
-  const playerRef = refs.player(gameID, playerID);
 
-  useConnectivityStatus(playerRef);
+  useConnectivityStatus(refs.player(gameID, playerID));
 
   return (
     <div style={styles.controller}>
-      <AppBar color="default" position="static">
-        <Toolbar style={{ flexWrap: 'wrap' }}>
-          <GameInfo name="Game Site" value={window.location.host} color="primary" />
-          <GameInfo name="Game Code" value={gameID} color="secondary" />
-          <GameInfo name="Your Name" value={<PlayerName playerRef={playerRef} />} />
-        </Toolbar>
-      </AppBar>
+      <TopBar />
 
       <SwipeArea />
     </div>

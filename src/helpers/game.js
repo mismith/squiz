@@ -177,3 +177,7 @@ export async function endTrack(roundID, trackID) {
     completed: ServerValue.TIMESTAMP,
   });
 }
+
+export async function removePlayer(gameID, playerID) {
+  return refs.player(gameID, playerID).remove();
+}

@@ -10,7 +10,7 @@ import DialogConfirm from './DialogConfirm';
 import ScoreChange from './ScoreChange';
 import Loader from './Loader';
 import useRouteParams from '../hooks/useRouteParams';
-import { getPlayerScore, getScores } from '../helpers/game';
+import { getPlayerScore, getScores, removePlayer } from '../helpers/game';
 import { refs, keyField, useLatestObjectVal } from '../helpers/firebase';
 
 const useStyles = makeStyles(theme => ({
@@ -121,7 +121,7 @@ export default function Players({ className, ...props }) {
   const [playerToRemove, setPlayerToRemove] = useState(null);
   const handleClose = () => setPlayerToRemove(null);
   const handleRemove = async () => {
-    await refs.player(gameID, playerToRemove.id).remove();
+    await removePlayer(gameID, playerToRemove.id);
     handleClose();
   };
 

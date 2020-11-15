@@ -8,15 +8,22 @@ import Grid from '@material-ui/core/Grid';
 import CloseIcon from '@material-ui/icons/Close';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import Home from '@material-ui/icons/Home';
+import Skeleton from '@material-ui/lab/Skeleton';
 
 import GameInfo from '../components/GameInfo';
 import DialogConfirm from '../components/DialogConfirm';
 import useRouteParams from '../hooks/useRouteParams';
-import { endGame } from '../helpers/game';
+import { endGame, removePlayer } from '../helpers/game';
 import { refs, keyField } from '../helpers/firebase';
 
+export function PlayerName({ playerRef }) {
+  const [player, loading] = useObjectVal(playerRef);
+
+  return loading ? <Skeleton variant="text" width={100} /> : <>{player?.name}</>;
+}
+
 export default function TopBar(props) {
-  const { gameID, categoryID, playlistID } = useRouteParams();
+  const { gameID, categoryID, playlistID, playerID } = useRouteParams();
   const [game] = useObjectVal(refs.game(gameID), { keyField });
 
   let to = '';
@@ -29,11 +36,17 @@ export default function TopBar(props) {
     }
   }
 
+  const playerRef = playerID && refs.player(gameID, playerID);
+
   const history = useHistory();
   const [confirmQuit, setConfirmQuit] = useState(false);
   const handleCancelQuit = () => setConfirmQuit(false);
   const handleConfirmQuit = async () => {
-    await endGame(gameID);
+    if (playerID) {
+      await removePlayer(gameID, playerID);
+    } else {
+      await endGame(gameID);
+    }
     handleCancelQuit();
     history.push('/');
   };
@@ -58,6 +71,9 @@ export default function TopBar(props) {
         <Grid item container xs>
           <GameInfo name="Game Site" value={window.location.host} color="primary" />
           <GameInfo name="Game Code" value={gameID} color="secondary" />
+          {playerRef && (
+            <GameInfo name="Your Name" value={<PlayerName playerRef={playerRef} />} />
+          )}
         </Grid>
 
         <Grid item container xs={2} justify="flex-end">
@@ -68,7 +84,7 @@ export default function TopBar(props) {
           <DialogConfirm
             open={Boolean(confirmQuit)}
             title="Quit Game"
-            body="Are you sure you want to permanently end this game for all players?"
+            body={`Are you sure you want to permanently ${playerID ? 'leave this game' : 'end this game for all players'}?`}
             onCancel={handleCancelQuit}
             onConfirm={handleConfirmQuit}
           />
