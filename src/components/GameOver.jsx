@@ -1,17 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useListVals } from 'react-firebase-hooks/database';
+import useAsyncEffect from 'use-async-effect';
 import Typography from '@material-ui/core/Typography';
 import Replay from '@material-ui/icons/Replay';
 
 import SpotifyButton from './SpotifyButton';
 import useRouteParams from '../hooks/useRouteParams';
-import { restartGame } from '../helpers/game';
+import { getPlayerScore, getScores, restartGame } from '../helpers/game';
 import { refs, keyField } from '../helpers/firebase';
 
 export default function GameOver(props) {
   const { gameID } = useRouteParams();
-  const winnerRef = refs.players(gameID).orderByKey('score').limitToLast(1);
-  const [[winner] = []] = useListVals(winnerRef, { keyField });
+  const [players] = useListVals(refs.players(gameID), { keyField });
+  
+  const [scores, setScores] = useState({});
+  useAsyncEffect(async (isMounted) => {
+    const scores = await getScores(gameID);
+    if (!isMounted()) {
+      setScores(scores);
+    }
+  }, [gameID]);
+
+  players.forEach(player => {
+    player.$score = getPlayerScore(scores, gameID, player.id);
+  });
+  const [winner] = players.sort((a, b) => a.$score - b.$score);
 
   const handleRestart = () => restartGame(gameID);
 
