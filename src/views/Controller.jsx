@@ -24,7 +24,7 @@ function usePlayerSwipes() {
   useEffect(() => {
     // reset local swipe marker for each new track
     setSwipe(null);
-  }, [playerID, gameID, roundID, trackID, track?.completed]);
+  }, [gameID, game?.paused, game?.inactive, roundID, trackID, track?.completed, playerID]);
   async function onSwiped({ dir }) {
     if (!game?.paused && !game?.inactive && track?.id && !track?.completed && dir !== swipe) {
       // send selection to server
