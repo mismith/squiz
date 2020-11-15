@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useListVals, useObjectVal } from 'react-firebase-hooks/database';
+import useAsyncEffect from 'use-async-effect';
 import CountTo from 'react-count-to';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
@@ -58,16 +59,11 @@ export function Player({ player, onRemove, className, ...props }) {
 
   const [score, setScore] = useState(0);
   const prevScore = usePrevious(score);
-  useEffect(() => {
-    let cancelled = false;
-    getScores(gameID).then(scores => {
-      if (!cancelled) {
-        setScore(getPlayerScore(scores, gameID, playerID));
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
+  useAsyncEffect(async (isMounted) => {
+    const scores = await getScores(gameID);
+    if (!isMounted()) {
+      setScore(getPlayerScore(scores, gameID, playerID));
+    }
   }, [gameID, playerID, track?.completed]);
   
   const gameActive = !loading && game?.id && !game?.paused;
