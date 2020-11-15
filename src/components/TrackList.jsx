@@ -15,6 +15,7 @@ import TileButton from './TileButton';
 import SpotifyButton from './SpotifyButton';
 import Choices from './Choices';
 import Loader from './Loader';
+import useRouteParams from '../hooks/useRouteParams';
 import useHasInteracted from '../hooks/useHasInteracted';
 import { refs, keyField, ServerValue, useLatestObjectVal } from '../helpers/firebase';
 import {
@@ -35,12 +36,10 @@ import {
   endRound,
   endTrack,
   resumeGame,
-  pauseGame,
   startRound,
   restartTrack,
 } from '../helpers/game';
 import * as audio from '../helpers/audio';
-import useRouteParams from '../hooks/useRouteParams';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -224,13 +223,6 @@ export default function TrackList() {
   useEffect(() => {
     return () => audio.stop();
   }, []);
-  // store screen refresh/reload in state // @TODO: move this to page beforeunload
-  useEffect(() => {
-    if (!hasInteracted && !game?.paused) {
-      // pause round until user interacts with screen
-      pauseGame(gameID);
-    }
-  }, [hasInteracted, game?.id]);
   useAsyncEffect(async (isMounted) => {
     // make sure the audio loads (skip track if not)
     try {

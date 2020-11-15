@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useObjectVal } from 'react-firebase-hooks/database';
 import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
@@ -13,7 +13,9 @@ import GameOver from '../components/GameOver';
 import ProgressIndicator from '../components/ProgressIndicator';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
 import useRouteParams from '../hooks/useRouteParams';
+import useHasInteracted from '../hooks/useHasInteracted';
 import { refs, keyField } from '../helpers/firebase';
+import { pauseGame } from '../helpers/game';
 
 const styles = {
   container: {
@@ -42,6 +44,20 @@ const styles = {
 export function Content() {
   const { gameID, categoryID, playlistID } = useRouteParams();
   const [game, loading] = useObjectVal(refs.game(gameID), { keyField });
+
+  // freeze game state on page leave/reload
+  const hasInteracted = useHasInteracted();
+  useEffect(() => {
+    return () => {
+      pauseGame(gameID);
+    };
+  }, []);
+  useEffect(() => {
+    if (!hasInteracted && !game?.paused) {
+      // pause round until user interacts with screen
+      pauseGame(gameID);
+    }
+  }, [hasInteracted, game?.id]);
 
   if (loading) {
     return (
