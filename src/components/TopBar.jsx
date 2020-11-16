@@ -10,13 +10,14 @@ import CloseIcon from '@material-ui/icons/Close';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import Home from '@material-ui/icons/Home';
 import MoreVert from '@material-ui/icons/MoreVert';
+import SlowMotionVideo from '@material-ui/icons/SlowMotionVideo';
 import Skeleton from '@material-ui/lab/Skeleton';
 
 import GameInfo from './GameInfo';
 import DialogConfirm from './DialogConfirm';
 import ResponsiveButton from './ResponsiveButton';
 import useRouteParams from '../hooks/useRouteParams';
-import { endGame, removePlayer } from '../helpers/game';
+import { endGame, removePlayer, useUsedTrackIDs } from '../helpers/game';
 import { refs, keyField } from '../helpers/firebase';
 
 export function PlayerName({ playerRef }) {
@@ -30,7 +31,15 @@ export function GameMenu({ ...props }) {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const isOpen = Boolean(anchorEl);
+  const handleClose = () => setAnchorEl(null);
 
+  const [usedTrackIDs, setUsedTrackIDs] = useUsedTrackIDs();
+  const [confirmReset, setConfirmReset] = useState(false);
+  const handleCancelReset = () => setConfirmReset(false);
+  const handleConfirmReset = async () => {
+    setUsedTrackIDs('');
+    handleCancelReset();
+  };
 
   const history = useHistory();
   const [confirmQuit, setConfirmQuit] = useState(false);
@@ -51,16 +60,32 @@ export function GameMenu({ ...props }) {
         Icon={MoreVert}
         ref={anchorEl}
         onClick={({ currentTarget }) => setAnchorEl(currentTarget)}
+        {...props}
       >
         Menu
       </ResponsiveButton>
 
-      <Menu open={isOpen} anchorEl={anchorEl} onClose={() => setAnchorEl(null)}>
-        <MenuItem onClick={() => setConfirmQuit(true)}>
+      <Menu open={isOpen} anchorEl={anchorEl} onClose={handleClose}>
+        <MenuItem onClick={() => { setConfirmQuit(true); handleClose(); }}>
           <CloseIcon style={{ marginRight: 8 }} />
           {playerID ? 'Leave' : 'End'} Game
         </MenuItem>
+
+        {Boolean(usedTrackIDs) && (
+          <MenuItem onClick={() => { setConfirmReset(true); handleClose(); }}>
+            <SlowMotionVideo style={{ marginRight: 8 }} />
+            Reset Used Tracks
+          </MenuItem>
+        )}
       </Menu>
+      
+      <DialogConfirm
+        open={Boolean(confirmReset)}
+        title="Reset Used Tracks"
+        body={<>By resetting the tracks used, songs you have heard before may appear as correct answers in future rounds.<br /><br />Are you sure you want to potentially see repeat tracks?</>}
+        onCancel={handleCancelReset}
+        onConfirm={handleConfirmReset}
+      />
       
       <DialogConfirm
         open={Boolean(confirmQuit)}

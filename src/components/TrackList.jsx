@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAsync } from 'react-async-hook';
 import useAsyncEffect from 'use-async-effect';
-import useLocalStorageState from 'use-local-storage-state';
 import { useListVals, useObjectVal } from 'react-firebase-hooks/database';
 import shuffleArray from 'shuffle-array';
 import Card from '@material-ui/core/Card';
@@ -35,6 +34,7 @@ import {
   resumeGame,
   startRound,
   restartTrack,
+  useUsedTrackIDs,
 } from '../helpers/game';
 import * as audio from '../helpers/audio';
 
@@ -98,7 +98,7 @@ export default function TrackList() {
     result: playlistTracks,
     loading: playlistTracksLoading,
   } = useAsync(loadPlaylistTracks, [playlistID]);
-  const [usedTrackIDs, setUsedTrackIDs] = useLocalStorageState('usedTracks', '');
+  const [usedTrackIDs, setUsedTrackIDs] = useUsedTrackIDs();
   const [isStarting, setStarting] = useState(false);
 
   const [game, gameLoading] = useObjectVal(refs.game(gameID), { keyField });

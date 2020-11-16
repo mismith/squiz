@@ -1,4 +1,5 @@
 import { useListVals } from 'react-firebase-hooks/database';
+import { createLocalStorageStateHook } from 'use-local-storage-state';
 import weightedRandom from 'weighted-random';
 
 import { refs, keyField, ServerValue } from './firebase';
@@ -39,6 +40,7 @@ export function usePickedTracks(roundID, possibleTracks = [], usedTrackIDs = [])
     error,
   };
 }
+export const useUsedTrackIDs = createLocalStorageStateHook('usedTrackIDs', '');
 
 export const trimItem = ({ id, name }) => ({ id, name });
 export const trimTrack = (track) => ({
