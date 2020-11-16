@@ -8,7 +8,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import TileButton from './TileButton';
 import useHasInteracted from '../hooks/useHasInteracted';
 import useRouteParams from '../hooks/useRouteParams';
-import { ROUNDS_LIMIT, TRACKS_LIMIT } from '../helpers/game';
+import { SETTINGS } from '../helpers/settings';
 import * as audio from '../helpers/audio';
 import { refs, keyField } from '../helpers/firebase';
 
@@ -123,7 +123,7 @@ function TrackProgress({ roundID, j, ...props }) {
 function RoundProgress({ i, className, ...props }) {
   const classes = useStyles();
 
-  const tracksNum = Array.apply(null, { length: TRACKS_LIMIT }).map((v, i) => i + 1);
+  const tracksNum = Array.apply(null, { length: SETTINGS.TRACKS_LIMIT }).map((v, i) => i + 1);
 
   const { gameID } = useRouteParams();
   const [rounds] = useListVals(refs.rounds(gameID), { keyField });
@@ -144,7 +144,7 @@ function RoundProgress({ i, className, ...props }) {
 export default function ProgressIndicator({ className, ...props }) {
   const classes = useStyles();
   
-  const roundsNum = Array.apply(null, { length: ROUNDS_LIMIT }).map((v, i) => i + 1);
+  const roundsNum = Array.apply(null, { length: SETTINGS.ROUNDS_LIMIT }).map((v, i) => i + 1);
 
   return (
     <div

@@ -3,12 +3,7 @@ import weightedRandom from 'weighted-random';
 
 import { refs, keyField, ServerValue } from './firebase';
 import * as audio from './audio';
-
-export const ROUNDS_LIMIT = 5;
-export const TRACKS_LIMIT = 8;
-export const CHOICES_TIMEOUT = 10 * 1000;
-export const CHOICES_STARTUP = 1 * 1000;
-export const RESULTS_TIMEOUT = 3 * 1000;
+import { SETTINGS } from './settings';
 
 export const getRandomID = (items = []) => {
   const randomIndex = Math.floor(Math.random() * items.length);
@@ -62,8 +57,8 @@ export function getPointsForTrackGuess(track, guess) {
       const trackAcceptsSwipesAt = track?.timestamp || 0;
       const playerSwipedAt = guess?.timestamp || 0;
       // give players a 'head start' in order to process the visuals/sounds
-      const reactionTime = playerSwipedAt - trackAcceptsSwipesAt - CHOICES_STARTUP; 
-      const percent = Math.round(reactionTime / CHOICES_TIMEOUT * 100);
+      const reactionTime = playerSwipedAt - trackAcceptsSwipesAt - SETTINGS.CHOICES_STARTUP;
+      const percent = Math.round(reactionTime / SETTINGS.CHOICES_TIMEOUT * 100);
       const points = 100 - Math.min(Math.max(0, percent), 100);
       return points;
     }

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { SETTINGS } from './settings';
 import START from '../sounds/start.mp3';
 import END from '../sounds/end.mp3';
-import { CHOICES_TIMEOUT } from './game';
 
 export const SOUNDS = {
   // @TODO: add credit for zapslpat.com: https://www.zapsplat.com/license-type/standard-license/
@@ -84,7 +84,7 @@ export function isPlaying() {
   return timer.progress > 0;
 }
 
-export function useProgress(total = CHOICES_TIMEOUT) {
+export function useProgress(total = SETTINGS.CHOICES_TIMEOUT) {
   const [progress, setProgress] = useState(0);
   const ref = useRef();
   const animate = useCallback(() => {

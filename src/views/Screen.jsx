@@ -30,15 +30,6 @@ const styles = {
     flex: 'auto',
     overflow: 'auto',
   },
-  rounds: {
-    label: {
-      marginLeft: 'auto',
-      marginRight: 16,
-    },
-    stepper: {
-      background: 'transparent',
-    },
-  },
 };
 
 export function Content() {

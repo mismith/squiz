@@ -17,6 +17,7 @@ import Choices from './Choices';
 import Loader from './Loader';
 import useRouteParams from '../hooks/useRouteParams';
 import useHasInteracted from '../hooks/useHasInteracted';
+import { SETTINGS } from '../helpers/settings';
 import { refs, keyField, ServerValue, useLatestObjectVal } from '../helpers/firebase';
 import {
   loadCategory,
@@ -25,10 +26,6 @@ import {
   loadDecoys,
 } from '../helpers/spotify';
 import {
-  ROUNDS_LIMIT,
-  TRACKS_LIMIT,
-  CHOICES_TIMEOUT,
-  RESULTS_TIMEOUT,
   pickRandomTrack,
   usePickedTracks,
   trimTrack,
@@ -86,7 +83,8 @@ export default function TrackList() {
   const classes = useStyles({ startingDuration });
 
   const hasInteracted = useHasInteracted();
-
+  
+  const { ROUNDS_LIMIT, TRACKS_LIMIT, CHOICES_TIMEOUT, RESULTS_TIMEOUT } = SETTINGS;
   const { gameID, categoryID, playlistID } = useRouteParams();
   const {
     result: category,
