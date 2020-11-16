@@ -3,15 +3,15 @@ import { Link, useHistory } from 'react-router-dom';
 import { useObjectVal } from 'react-firebase-hooks/database';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import CloseIcon from '@material-ui/icons/Close';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import Home from '@material-ui/icons/Home';
 import Skeleton from '@material-ui/lab/Skeleton';
 
-import GameInfo from '../components/GameInfo';
-import DialogConfirm from '../components/DialogConfirm';
+import GameInfo from './GameInfo';
+import DialogConfirm from './DialogConfirm';
+import ResponsiveButton from './ResponsiveButton';
 import useRouteParams from '../hooks/useRouteParams';
 import { endGame, removePlayer } from '../helpers/game';
 import { refs, keyField } from '../helpers/firebase';
@@ -53,22 +53,20 @@ export default function TopBar(props) {
 
   return (
     <AppBar color="default" position="static" {...props}>
-      <Toolbar style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
+      <Toolbar>
         <Grid item xs={2}>
           {to ? (
-            <Button component={Link} to={to}>
-              <ArrowBackIosIcon style={{ marginRight: 8 }} />
+            <ResponsiveButton component={Link} to={to} Icon={ArrowBackIosIcon}>
               Back
-            </Button>
+            </ResponsiveButton>
           ) : (
-            <Button component={Link} to="/">
-              <Home style={{ marginRight: 8 }} />
+            <ResponsiveButton component={Link} to="/" Icon={Home}>
               Home
-            </Button>
+            </ResponsiveButton>
           )}
         </Grid>
 
-        <Grid item container xs>
+        <Grid item container xs style={{ overflow: 'hidden' }}>
           <GameInfo name="Game Site" value={window.location.host} color="primary" />
           <GameInfo name="Game Code" value={gameID} color="secondary" />
           {playerRef && (

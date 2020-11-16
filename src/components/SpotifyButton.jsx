@@ -11,7 +11,7 @@ const styles = {
   },
   icon: {
     display: 'inline-flex',
-    marginRight: 16,
+    marginRight: 8,
     alignItems: 'center',
   },
   loader: {

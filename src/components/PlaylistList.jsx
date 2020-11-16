@@ -31,7 +31,7 @@ export default function PlaylistList() {
               to={`${url}/${getRandomID(playlists) || ''}`}
               style={{ marginLeft: 'auto', marginRight: 'auto' }}
             >
-              <ShuffleIcon style={{ marginRight: 16 }} />
+              <ShuffleIcon style={{ marginRight: 8 }} />
               Random
             </Button>
           </Toolbar>

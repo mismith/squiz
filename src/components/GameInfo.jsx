@@ -8,7 +8,6 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     maxWidth: '100%',
     textAlign: 'right',
-    padding: theme.spacing(1, 2),
     margin: 'auto',
   },
   name: {

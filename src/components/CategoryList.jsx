@@ -15,7 +15,7 @@ import { loadCategories } from '../helpers/spotify';
 export default function CategoryList() {
   const { url } = useRouteMatch();
   const { result: categories = [], loading, error } = useAsync(loadCategories, []);
-  
+
   if (loading || error) {
     return (
       <Loader />
@@ -31,7 +31,7 @@ export default function CategoryList() {
               to={`${url}/${getRandomID(categories) || ''}`}
               style={{ marginLeft: 'auto', marginRight: 'auto' }}
             >
-              <ShuffleIcon style={{ marginRight: 16 }} />
+              <ShuffleIcon style={{ marginRight: 8 }} />
               Random
             </Button>
           </Toolbar>
