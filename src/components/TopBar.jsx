@@ -4,9 +4,12 @@ import { useObjectVal } from 'react-firebase-hooks/database';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Grid from '@material-ui/core/Grid';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import CloseIcon from '@material-ui/icons/Close';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import Home from '@material-ui/icons/Home';
+import MoreVert from '@material-ui/icons/MoreVert';
 import Skeleton from '@material-ui/lab/Skeleton';
 
 import GameInfo from './GameInfo';
@@ -20,6 +23,54 @@ export function PlayerName({ playerRef }) {
   const [player, loading] = useObjectVal(playerRef);
 
   return loading ? <Skeleton variant="text" width={100} /> : <>{player?.name}</>;
+}
+
+export function GameMenu({ ...props }) {
+  const { gameID, playerID } = useRouteParams();
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const isOpen = Boolean(anchorEl);
+
+
+  const history = useHistory();
+  const [confirmQuit, setConfirmQuit] = useState(false);
+  const handleCancelQuit = () => setConfirmQuit(false);
+  const handleConfirmQuit = async () => {
+    if (playerID) {
+      await removePlayer(gameID, playerID);
+    } else {
+      await endGame(gameID);
+    }
+    handleCancelQuit();
+    history.push('/');
+  };
+
+  return (
+    <>
+      <ResponsiveButton
+        Icon={MoreVert}
+        ref={anchorEl}
+        onClick={({ currentTarget }) => setAnchorEl(currentTarget)}
+      >
+        Menu
+      </ResponsiveButton>
+
+      <Menu open={isOpen} anchorEl={anchorEl} onClose={() => setAnchorEl(null)}>
+        <MenuItem onClick={() => setConfirmQuit(true)}>
+          <CloseIcon style={{ marginRight: 8 }} />
+          {playerID ? 'Leave' : 'End'} Game
+        </MenuItem>
+      </Menu>
+      
+      <DialogConfirm
+        open={Boolean(confirmQuit)}
+        title="Quit Game"
+        body={`Are you sure you want to permanently ${playerID ? 'leave this game' : 'end this game for all players'}?`}
+        onCancel={handleCancelQuit}
+        onConfirm={handleConfirmQuit}
+      />
+    </>
+  );
 }
 
 export default function TopBar(props) {
@@ -37,19 +88,6 @@ export default function TopBar(props) {
   }
 
   const playerRef = playerID && refs.player(gameID, playerID);
-
-  const history = useHistory();
-  const [confirmQuit, setConfirmQuit] = useState(false);
-  const handleCancelQuit = () => setConfirmQuit(false);
-  const handleConfirmQuit = async () => {
-    if (playerID) {
-      await removePlayer(gameID, playerID);
-    } else {
-      await endGame(gameID);
-    }
-    handleCancelQuit();
-    history.push('/');
-  };
 
   return (
     <AppBar color="default" position="static" {...props}>
@@ -75,17 +113,7 @@ export default function TopBar(props) {
         </Grid>
 
         <Grid item container xs={2} justify="flex-end">
-          <Button onClick={() => setConfirmQuit(true)}>
-            <CloseIcon style={{ marginRight: 8 }} />
-            Quit
-          </Button>
-          <DialogConfirm
-            open={Boolean(confirmQuit)}
-            title="Quit Game"
-            body={`Are you sure you want to permanently ${playerID ? 'leave this game' : 'end this game for all players'}?`}
-            onCancel={handleCancelQuit}
-            onConfirm={handleConfirmQuit}
-          />
+          <GameMenu />
         </Grid>
       </Toolbar>
     </AppBar>
