@@ -8,6 +8,7 @@ import useConnectivityStatus from '../hooks/useConnectivityStatus';
 import { refs, keyField, ServerValue, useLatestObjectVal } from '../helpers/firebase';
 import { directions } from '../helpers/directions';
 import TopBar from '../components/TopBar';
+import { SETTINGS } from '../helpers/settings';
 
 function usePlayerSwipes() {
   const { gameID, playerID } = useRouteParams();
@@ -24,17 +25,23 @@ function usePlayerSwipes() {
   }, [gameID, game?.paused, game?.inactive, roundID, trackID, track?.completed, playerID]);
   async function onSwiped({ dir }) {
     if (!game?.paused && !game?.inactive && track?.id && !track?.completed && dir !== swipe) {
-      // send selection to server
+      // send guess to server
       const choiceIndex = directions.findIndex(direction => direction.dir === dir);
       const choice = track.choices[choiceIndex];
       if (choice?.id) {
-        // show selection locally
-        setSwipe(dir);
+        const guessRef = refs.guess(trackID, playerID);
+        const attempts = (await guessRef.child('attempts').once('value')).val() || 0;
+        if (!SETTINGS.GUESS_ATTEMPTS || attempts < SETTINGS.GUESS_ATTEMPTS) {
+          // show selection locally
+          setSwipe(dir);
 
-        await refs.guess(trackID, playerID).set({
-          choiceID: choice.id,
-          timestamp: ServerValue.TIMESTAMP,
-        });
+          // add guess to record
+          await guessRef.set({
+            choiceID: choice.id,
+            attempts: attempts + 1,
+            timestamp: ServerValue.TIMESTAMP,
+          });
+        }
       }
     }
   }
