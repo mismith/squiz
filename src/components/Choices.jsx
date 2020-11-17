@@ -39,16 +39,18 @@ const useStyles = makeStyles(theme => ({
       marginTop: -theme.spacing(8),
     },
   },
-  '@keyframes focus': {
-    from: {
-      filter: 'blur(100px)',
-    },
-    to: {
-      filter: 'blur(0px)',
+  '@global': {
+    '@keyframes focus': {
+      from: {
+        filter: 'blur(100px)',
+      },
+      to: {
+        filter: 'blur(0px)',
+      },
     },
   },
   album: {
-    animation: ({ duration }) => `$focus ${duration}ms forwards`,
+    animation: ({ duration }) => `focus ${duration}ms forwards`,
   },
 }));
 
