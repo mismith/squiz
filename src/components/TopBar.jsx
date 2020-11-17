@@ -50,7 +50,6 @@ export function GameMenu({ ...props }) {
     } else {
       await removeGame(gameID);
     }
-    handleCancelQuit();
     history.push('/');
   };
 

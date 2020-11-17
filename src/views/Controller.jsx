@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useObjectVal } from 'react-firebase-hooks/database';
+import { useHistory } from 'react-router-dom';
+import { useObject, useObjectVal } from 'react-firebase-hooks/database';
 import { useSwipeable } from 'react-swipeable';
 import Typography from '@material-ui/core/Typography';
 
+import TopBar from '../components/TopBar';
 import useRouteParams from '../hooks/useRouteParams';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
 import { refs, keyField, ServerValue, useLatestObjectVal } from '../helpers/firebase';
 import { directions } from '../helpers/directions';
-import TopBar from '../components/TopBar';
 import { SETTINGS } from '../helpers/settings';
 
 function usePlayerSwipes() {
@@ -122,8 +123,18 @@ export function SwipeArea() {
 
 export default function Controller() {
   const { gameID, playerID } = useRouteParams();
+  const playerRef = refs.player(gameID, playerID);
 
-  useConnectivityStatus(refs.player(gameID, playerID));
+  useConnectivityStatus(playerRef);
+
+  const history = useHistory();
+  const [snap, loading, error] = useObject(playerRef);
+  const exists = error || loading || snap?.exists();
+  useEffect(() => {
+    if (!exists) {
+      history.push('/');
+    }
+  }, [exists]);
 
   return (
     <div style={styles.controller}>
