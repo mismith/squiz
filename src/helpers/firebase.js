@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
+import { useListVals, useObject } from 'react-firebase-hooks/database';
 import firebase from 'firebase/app';
 import 'firebase/database';
-import { useListVals } from 'react-firebase-hooks/database';
 
 export const config = {
   apiKey: 'AIzaSyBsV2vcnGc5HoQm8dZuLS-svp8N5Z6jGkg',
@@ -32,6 +33,19 @@ export const keyField = 'id';
 export function useLatestObjectVal(ref, options = undefined) {
   const [[value] = [], ...others] = useListVals(ref?.limitToLast(1), options);
   return [value, ...others];
+}
+export function useRefRemoved(ref, handler) {
+  const [didExist, setDidExist] = useState(false);
+  const [snap] = useObject(ref);
+  const doesExist = snap?.exists();
+  useEffect(() => {
+    if (!didExist && doesExist) {
+      setDidExist(true);
+    }
+    if (didExist && !doesExist) {
+      handler();
+    }
+  }, [didExist, doesExist, handler]);
 }
 
 export default firebase;

@@ -14,8 +14,9 @@ import ProgressIndicator from '../components/ProgressIndicator';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
 import useRouteParams from '../hooks/useRouteParams';
 import useHasInteracted from '../hooks/useHasInteracted';
-import { refs, keyField } from '../helpers/firebase';
+import { refs, keyField, useRefRemoved } from '../helpers/firebase';
 import { pauseGame } from '../helpers/game';
+import { useHistory } from 'react-router-dom';
 
 const styles = {
   container: {
@@ -40,11 +41,13 @@ export function Content() {
   const hasInteracted = useHasInteracted();
   useEffect(() => {
     return () => {
-      pauseGame(gameID);
+      if (game?.id) {
+        pauseGame(gameID);
+      }
     };
   }, []);
   useEffect(() => {
-    if (!hasInteracted && !game?.paused) {
+    if (!hasInteracted && game?.id && !game?.paused) {
       // pause round until user interacts with screen
       pauseGame(gameID);
     }
@@ -88,8 +91,12 @@ export function Content() {
 
 export default function Screen() {
   const { gameID } = useRouteParams();
+  const gameRef = refs.game(gameID);
 
-  useConnectivityStatus(refs.game(gameID));
+  useConnectivityStatus(gameRef);
+
+  const history = useHistory();
+  useRefRemoved(gameRef, () => history.push('/'));
 
   return (
     <div style={styles.container}>

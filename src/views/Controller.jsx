@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-import { useObject, useObjectVal } from 'react-firebase-hooks/database';
+import { useObjectVal } from 'react-firebase-hooks/database';
 import { useSwipeable } from 'react-swipeable';
 import Typography from '@material-ui/core/Typography';
 
 import TopBar from '../components/TopBar';
 import useRouteParams from '../hooks/useRouteParams';
 import useConnectivityStatus from '../hooks/useConnectivityStatus';
-import { refs, keyField, ServerValue, useLatestObjectVal } from '../helpers/firebase';
+import { refs, keyField, ServerValue, useLatestObjectVal, useRefRemoved } from '../helpers/firebase';
 import { directions } from '../helpers/directions';
 import { SETTINGS } from '../helpers/settings';
 
@@ -128,13 +128,7 @@ export default function Controller() {
   useConnectivityStatus(playerRef);
 
   const history = useHistory();
-  const [snap, loading, error] = useObject(playerRef);
-  const exists = error || loading || snap?.exists();
-  useEffect(() => {
-    if (!exists) {
-      history.push('/');
-    }
-  }, [exists]);
+  useRefRemoved(playerRef, () => history.push('/'));
 
   return (
     <div style={styles.controller}>
