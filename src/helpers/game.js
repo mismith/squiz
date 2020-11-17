@@ -116,20 +116,15 @@ export function generateGameID() {
 }
 
 export async function startGame(gameID) {
-  return refs.game(gameID).set({
+  return refs.game(gameID).set({ // NB: set()
     timestamp: ServerValue.TIMESTAMP,
   });
 }
 export async function restartGame(gameID) {
-  const playersRef = refs.players(gameID);
-  const playerIDs = Object.keys((await playersRef.once('value')).val());
-
-  await Promise.all([
-    refs.rounds(gameID).remove(),
-    ...playerIDs.map(playerID => playersRef.child(playerID).child('score').remove()),
+  return Promise.all([
+    removeRounds(gameID),
+    startGame(gameID),
   ]);
-
-  return startGame(gameID);
 }
 export async function pauseGame(gameID) {
   return refs.game(gameID).update({
@@ -146,6 +141,20 @@ export async function endGame(gameID) {
     completed: ServerValue.TIMESTAMP,
   });
 }
+export async function removeGame(gameID) {
+  return Promise.all([
+    removeRounds(gameID),
+    removePlayers(gameID),
+    refs.game(gameID).remove(),
+  ]);
+}
+
+export async function removePlayers(gameID) {
+  return refs.players(gameID).remove();
+}
+export async function removePlayer(gameID, playerID) {
+  return refs.player(gameID, playerID).remove();
+}
 
 export async function startRound(gameID, playlistID) {
   return refs.rounds(gameID).push({
@@ -158,13 +167,23 @@ export async function endRound(gameID, roundID) {
     completed: ServerValue.TIMESTAMP,
   });
 }
+export async function removeRounds(gameID) {
+  const roundIDs = Object.keys((await refs.rounds(gameID).once('value')).val() || {});
+  return Promise.all(roundIDs.map(roundID => removeRound(gameID, roundID)));
+}
+export async function removeRound(gameID, roundID) {
+  return Promise.all([
+    removeTracks(roundID),
+    refs.round(gameID, roundID).remove(),
+  ]);
+}
 
 export async function restartTrack(roundID, trackID) {
   return Promise.all([
     refs.track(roundID, trackID).update({
       timestamp: ServerValue.TIMESTAMP,
     }),
-    refs.guesses(trackID).remove(),
+    removeGuesses(trackID),
   ]);
 }
 export async function endTrack(roundID, trackID) {
@@ -174,7 +193,20 @@ export async function endTrack(roundID, trackID) {
     completed: ServerValue.TIMESTAMP,
   });
 }
+export async function removeTracks(roundID) {
+  const trackIDs = Object.keys((await refs.tracks(roundID).once('value')).val() || {});
+  return Promise.all(trackIDs.map(trackID => removeTrack(roundID, trackID)));
+}
+export async function removeTrack(roundID, trackID) {
+  return Promise.all([
+    removeGuesses(trackID),
+    refs.track(roundID, trackID).remove(),
+  ]);
+}
 
-export async function removePlayer(gameID, playerID) {
-  return refs.player(gameID, playerID).remove();
+export async function removeGuesses(trackID) {
+  return refs.guesses(trackID).remove();
+}
+export async function removeGuess(trackID, playerID) {
+  return refs.guess(trackID, playerID).remove();
 }

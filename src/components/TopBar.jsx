@@ -17,7 +17,7 @@ import GameInfo from './GameInfo';
 import DialogConfirm from './DialogConfirm';
 import ResponsiveButton from './ResponsiveButton';
 import useRouteParams from '../hooks/useRouteParams';
-import { endGame, removePlayer, useUsedTrackIDs } from '../helpers/game';
+import { removePlayer, removeGame, useUsedTrackIDs } from '../helpers/game';
 import { refs, keyField } from '../helpers/firebase';
 
 export function PlayerName({ playerRef }) {
@@ -48,7 +48,7 @@ export function GameMenu({ ...props }) {
     if (playerID) {
       await removePlayer(gameID, playerID);
     } else {
-      await endGame(gameID);
+      await removeGame(gameID);
     }
     handleCancelQuit();
     history.push('/');
