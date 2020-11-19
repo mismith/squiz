@@ -1,26 +1,22 @@
 import { useState } from 'react';
 import useAsyncEffect from 'use-async-effect';
 
-
 export default function useRandomName() {
-  const [remainingRandomNames, setRemainingRandomNames] = useState([]);
+  const [randomNamesRemaining, setRandomNamesRemaining] = useState([]);
   useAsyncEffect(async (isMounted) => {
-    if (!remainingRandomNames.length) {
+    if (!randomNamesRemaining.length) {
       const url = 'http://names.drycodes.com/25?nameOptions=funnyWords';
       const names = await (await fetch(`https://cors-anywhere.herokuapp.com/${url}`)).json();
-      if (!isMounted()) {
-        setRemainingRandomNames(names);
-      }
+      if (!isMounted()) return;
+      setRandomNamesRemaining(names);
     }
-  }, [remainingRandomNames.length]);
+  }, [randomNamesRemaining.length]);
 
   const getRandomName = () => {
-    const nextRandomName = remainingRandomNames.splice(0, 1);
-    setRemainingRandomNames(remainingRandomNames);
+    const nextRandomName = randomNamesRemaining.splice(0, 1);
+    setRandomNamesRemaining(randomNamesRemaining);
     return nextRandomName;
   };
 
-  getRandomName.remaining = remainingRandomNames;
-
-  return getRandomName;
+  return [getRandomName, randomNamesRemaining];
 }

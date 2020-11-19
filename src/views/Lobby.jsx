@@ -157,7 +157,7 @@ export default function Lobby() {
     }
   }, [history, hostGame]);
 
-  const getRandomName = useRandomName();
+  const [getRandomName, randomNamesRemaining] = useRandomName();
 
   return (
     <Grid container direction="column" alignItems="center" justify="center" className={classes.root}>
@@ -226,7 +226,7 @@ export default function Lobby() {
                     <Clear />
                   </IconButton>
                 </InputAdornment>
-              ) : (Boolean(getRandomName?.remaining?.length) && (
+              ) : (Boolean(randomNamesRemaining?.length) && (
                 <InputAdornment position="end">
                   <IconButton edge="end" onClick={() => setPlayerName(getRandomName())}>
                     <Shuffle style={{ transform: 'rotate(180deg)' }} />

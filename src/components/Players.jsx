@@ -61,9 +61,8 @@ export function Player({ player, onRemove, className, ...props }) {
   const prevScore = usePrevious(score);
   useAsyncEffect(async (isMounted) => {
     const scores = await getScores(gameID);
-    if (!isMounted()) {
-      setScore(getPlayerScore(scores, gameID, playerID));
-    }
+    if (isMounted()) return;
+    setScore(getPlayerScore(scores, gameID, playerID));
   }, [gameID, playerID, track?.completed]);
   
   const gameActive = !loading && game?.id && !game?.paused;

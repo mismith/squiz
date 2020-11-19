@@ -16,9 +16,8 @@ export default function GameOver(props) {
   const [scores, setScores] = useState({});
   useAsyncEffect(async (isMounted) => {
     const scores = await getScores(gameID);
-    if (!isMounted()) {
-      setScores(scores);
-    }
+    if (!isMounted()) return;
+    setScores(scores);
   }, [gameID]);
 
   players.forEach(player => {
