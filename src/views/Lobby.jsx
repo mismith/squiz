@@ -16,7 +16,7 @@ import SpotifyLoginButton from '../components/SpotifyLoginButton';
 import About from '../components/About';
 import { refs, ServerValue } from '../helpers/firebase';
 import { login, retrieveAccessToken } from '../helpers/spotify';
-import { generateGameID, startGame } from '../helpers/game';
+import { gameIDRegex, generateGameID, startGame } from '../helpers/game';
 import useRandomName from '../hooks/useRandomName';
 
 const useStyles = makeStyles(theme => ({
@@ -186,7 +186,7 @@ export default function Lobby() {
             autoComplete="off"
             inputRef={register({
               required: 'Required',
-              pattern: { value: /^\d{4}$/, message: 'Invalid: should be a 4-digit number' },
+              pattern: { value: gameIDRegex, message: 'Invalid: should be a 4-digit number' },
             })}
             inputProps={{ name: 'joinGameID' }}
             error={!!(errors.joinGameID || gameIDError)}

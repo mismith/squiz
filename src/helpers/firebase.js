@@ -17,6 +17,7 @@ export const app = firebase.initializeApp(config);
 
 export const { ServerValue } = firebase.database;
 export const database = app.database();
+export const keyField = 'id';
 export const refs = {
   games: () => database.ref('games'),
   game: gameID => refs.games().child(gameID),
@@ -29,7 +30,6 @@ export const refs = {
   guesses: trackID => database.ref('tracks-players').child(trackID),
   guess: (trackID, playerID) => refs.guesses(trackID).child(playerID),
 };
-export const keyField = 'id';
 export function useLatestObjectVal(ref, options = undefined) {
   const [[value] = [], ...others] = useListVals(ref?.limitToLast(1), options);
   return [value, ...others];

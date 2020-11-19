@@ -111,6 +111,7 @@ export function getPlayerScore(scores, gameID, playerID) {
   return score;
 }
 
+export const gameIDRegex = /^\d{4}$/;
 export function generateGameID() {
   return `${Math.round(Math.random() * 8999) + 1000}`; // [1000, 9999]
 }
