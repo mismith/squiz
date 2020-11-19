@@ -191,8 +191,8 @@ export default function Lobby() {
             inputProps={{ name: 'joinGameID' }}
             error={!!(errors.joinGameID || gameIDError)}
             helperText={errors.joinGameID ? errors.joinGameID.message : gameIDError}
-            value={joinGameID}
-            onInput={() => setGameIDError('')}
+            value={joinGameID || ''}
+            onInput={() => setGameIDError(null)}
             onChange={event => setJoinGameID(event.target.value)}
             InputProps={{
               endAdornment: Boolean(joinGameID) && (
@@ -216,13 +216,13 @@ export default function Lobby() {
             inputProps={{ name: 'playerName' }}
             error={!!(errors.playerName || playerNameError)}
             helperText={errors.joinGameID ? errors.joinGameID.message : playerNameError}
-            value={playerName}
+            value={playerName || ''}
             onInput={() => setPlayerNameError('')}
             onChange={event => setPlayerName(event.target.value)}
             InputProps={{
               endAdornment: Boolean(playerName) ? (
                 <InputAdornment position="end">
-                  <IconButton edge="end" onClick={() => setPlayerName('')}>
+                  <IconButton edge="end" onClick={() => setPlayerName(null)}>
                     <Clear />
                   </IconButton>
                 </InputAdornment>
