@@ -25,7 +25,10 @@ export default function GameOver(props) {
   });
   const [winner] = players.sort((a, b) => a.$score - b.$score);
 
-  const handleRestart = () => restartGame(gameID);
+  const handleRestart = async () => {
+    setScores({});
+    await restartGame(gameID);
+  };
 
   return (
     <Typography

@@ -48,13 +48,14 @@ export function Player({ player, onRemove, className, ...props }) {
   const trackID = track?.id;
   const [guess] = useObjectVal(trackID && refs.guess(trackID, playerID))
 
+  // track previous score in order to animate counting up
   const [score, setScore] = useState(0);
   const [prevScore] = usePrevious(score);
   useAsyncEffect(async (isMounted) => {
     const scores = await getScores(gameID);
     if (isMounted()) return;
     setScore(getPlayerScore(scores, gameID, playerID));
-  }, [gameID, playerID, track?.completed]);
+  }, [gameID, playerID, track?.completed, round?.completed, game?.completed]);
   
   const gameActive = !loading && game?.id && !game?.paused;
   const roundInProgress = !round?.completed;
