@@ -70,7 +70,7 @@ export function GameMenu({ ...props }) {
           {playerID ? 'Leave' : 'End'} Game
         </MenuItem>
 
-        {Boolean(usedTrackIDs) && (
+        {Boolean(usedTrackIDs && !playerID) && (
           <MenuItem onClick={() => { setConfirmReset(true); handleClose(); }}>
             <SlowMotionVideo style={{ marginRight: 8 }} />
             Reset Used Tracks
