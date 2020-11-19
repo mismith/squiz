@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useListVals, useObjectVal } from 'react-firebase-hooks/database';
 import useAsyncEffect from 'use-async-effect';
 import CountTo from 'react-count-to';
@@ -13,6 +13,7 @@ import Loader from './Loader';
 import useRouteParams from '../hooks/useRouteParams';
 import { getPlayerScore, getScores, removePlayer } from '../helpers/game';
 import { refs, keyField, useLatestObjectVal } from '../helpers/firebase';
+import usePrevious from '../hooks/usePrevious';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -35,16 +36,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function usePrevious(value) {
-  const ref = useRef();
-  useEffect(() => {
-    if (ref.current !== value) {
-      ref.current = value;
-    }
-  });
-  return ref.current;
-}
-
 export function Player({ player, onRemove, className, ...props }) {
   const classes = useStyles();
 
@@ -58,7 +49,7 @@ export function Player({ player, onRemove, className, ...props }) {
   const [guess] = useObjectVal(trackID && refs.guess(trackID, playerID))
 
   const [score, setScore] = useState(0);
-  const prevScore = usePrevious(score);
+  const [prevScore] = usePrevious(score);
   useAsyncEffect(async (isMounted) => {
     const scores = await getScores(gameID);
     if (isMounted()) return;
