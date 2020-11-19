@@ -75,13 +75,13 @@ const styles = {
     maxWidth: '100vh',
     fontSize: 96,
     margin: 'auto',
+    userSelect: 'none',
+    pointerEvents: 'none',
   },
   direction: {
     display: 'flex',
     justifyContent: 'center',
     flexBasis: '50%',
-    pointerEvents: 'none',
-    userSelect: 'none',
   },
   label: {
     position: 'absolute',
