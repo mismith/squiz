@@ -76,7 +76,9 @@ const styles = {
     fontSize: 96,
     margin: 'auto',
     userSelect: 'none',
-    pointerEvents: 'none',
+    '> *': {
+      pointerEvents: 'none',
+    }
   },
   direction: {
     display: 'flex',
