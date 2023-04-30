@@ -29,7 +29,7 @@
     "weighted-random": "^0.1.0"
   },
   "devDependencies": {
-    "react-scripts": "^3.4.3"
+    "react-scripts": "^5.0.1"
   },
   "engines": {
     "node": "12"
